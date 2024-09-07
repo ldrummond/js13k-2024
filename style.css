@@ -1,15 +1,179 @@
-#c2d {
-    width: min(100vw, calc(100vh * 16/9));
-    position: absolute;
-    image-rendering: pixelated; /* You definitely want this if you are doing pixel art */
+/* Get rid of any margins, set background black, use flexbox to center */
+* {
+    box-sizing: border-box;
 }
 
-/* Get rid of any margins, set background black, use flexbox to center */
 html, body {
     margin: 0;
-    background-color: black;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    background-color: #222;
+    -webkit-font-smoothing: none;
+    font-family: monospace;
+}
+
+canvas {
+    image-rendering: pixelated;
+}
+
+#container {
+    position: absolute;
+    width: min(100vw, calc(100vh * 16/9));
+    height: min(100vh, calc(100vw * 9/16));
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 8px solid rgb(34, 0, 3);
+    box-sizing: border-box;
+}
+
+#container canvas {
+    position: absolute;
+    width: 100%;
     height: 100%;
+}
+
+#text {
+    /* TODO: Better way to approach this positioning */
+    position: absolute;
+    top: 5%;
+    right: 4%;
+    width: 37%;
+    height: 12%;
+    color: grey;
+    font-weight: 100;
+    font-size: 0.8em;
+}
+
+#text p {
+    margin-bottom: 0.2em;
+}
+
+#text p:first-child {
+    color: rgb(155, 132, 2);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+svg {
+    fill: rgb(198, 165, 1);
+    stroke: rgb(56, 21, 1);
+    stroke-width: 2px;
+    width: 50px;
+    height: 50px;
+}
+
+.resource-gain {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 1s ease-in;
+    border: 2px solid rgb(155, 132, 2);
+    width: 26px;
+    height: 32px;
+    margin-bottom: 50px;
+    animation: fadeaway 1s ease-out forwards;
+    /* TODO: Colors */
+    background: grey;
+    pointer-events: none;
+}
+
+@keyframes fadeaway {
+    0% {
+        transform: translate(-50%, -110%);
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -150%);
+        opacity: 0;
+    }
+}
+
+#footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2% 5%;
+}
+
+#footer svg {
+    stroke: #141615;
+    position: relative;
+    z-index: 1;
+    margin-right: 2vw;
+    width: 4.5vw;
+    margin-top: -0.25vw;
+    margin-left: 0.45vw;
+}
+
+#footer > div:after {
+    content: "";
+    position: absolute;
+    /* z-index: 0; */
+    width: 5vw;
+    height: 5vw;
+    transform: rotate(45deg);
+    background: #141615;
+    border: 2px solid #832323;
+}
+
+#footer > div {
+    color: #CFB04B;
+    font-size: 18px;
+    /* width: 25%; */
+    display: flex;
+    align-items: center;
+}
+
+#footer p {
+    margin-left: 1vw;
+}
+
+/* TODO: Remove */
+#debug {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 200px;
+    height: auto;
+    border: 1px solid grey;
+    background-color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+    z-index: 1000;
+}
+
+p {
+    margin: 0;
+}
+
+#debug ul {
+    padding: 8px;
+    list-style: none;
+}
+
+#debug li {
+    margin-bottom: 8px;
+}
+
+#debug .fill {
+    width: 100%;
+    height: 8px;
+    border: 1px solid black;
+    position: relative;
+    overflow: hidden;
+}
+
+#debug .fill-inner {
+    width: 100%;
+    height: 8px;
+    background-color: rgba(100, 100, 250, 1);
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: translateX(-100%);
 }

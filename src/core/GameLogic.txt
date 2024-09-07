@@ -1,0 +1,16 @@
+
+
+// 
+
+Render Background
+
+//
+
+Render UI
+- Load Sprites
+- Make UI Interactive
+- Add animations for hover, clicking, unlocking, etc.
+- Add conditional states for if something is "unlockable"
+- Add result to clicking something
+
+

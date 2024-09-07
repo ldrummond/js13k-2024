@@ -1,4 +1,4 @@
-import { defineConfig, IndexHtmlTransformContext, Plugin } from 'vite';
+import { defineConfig, IndexHtmlTransformContext, Plugin, ResolvedConfig } from 'vite';
 import path from 'path';
 import fs from 'fs/promises';
 import typescriptPlugin from '@rollup/plugin-typescript';
@@ -8,6 +8,8 @@ import CleanCSS from 'clean-css';
 import { statSync } from 'fs';
 const { execFileSync } = require('child_process');
 import ect from 'ect-bin';
+import { exec } from 'child_process';
+import { compile, compileFromFile } from 'json-schema-to-typescript'
 
 const htmlMinify = require('html-minifier');
 const tmp = require('tmp');
@@ -23,7 +25,9 @@ export default defineConfig(({ command, mode }) => {
         '@': path.resolve(__dirname, './src'),
       }
     },
-    plugins: undefined
+    plugins: [
+      asespritePlugin()
+    ]
   };
 
   if (command === 'build') {
@@ -47,7 +51,7 @@ export default defineConfig(({ command, mode }) => {
       }
     };
     // @ts-ignore
-    config.plugins = [typescriptPlugin(), closurePlugin(), roadrollerPlugin(), ectPlugin()];
+    config.plugins.append([typescriptPlugin(), closurePlugin(), roadrollerPlugin(), ectPlugin()]);
   }
 
   return config;
@@ -62,6 +66,68 @@ function closurePlugin(): Plugin {
   }
 }
 
+// https://github.com/narol1024/rollup-plugin-sprite/blob/master/index.js
+// https://stackoverflow.com/questions/69626090/how-to-watch-public-directory-in-vite-project-for-hot-reload
+// https://hackernoon.com/creating-a-custom-plugin-for-vite-the-easiest-guide
+function asespritePlugin(): Plugin {
+  let config: ResolvedConfig;
+
+  return {
+    name: 'asesprite-packer',
+    async configResolved(_config) {
+      config = _config;
+    },
+    async buildStart() {
+      const source_dir = path.resolve(config.root, "src/assets/sprites/");
+      const source_glob = source_dir + '/**';
+      const target_name = "spritesheet";
+      const target_png_path = path.resolve(config.root, `public/${target_name}.png`);
+      const target_json_path = path.resolve(config.root, `src/${target_name}.json`);
+      const target_json_ts_path = path.resolve(config.root, `src/${target_name}.ts`)
+
+      // Wath these files
+      this.addWatchFile(source_dir);
+
+      try {
+        // Asesprite CLI
+        // https://www.aseprite.org/docs/cli/#sheet-pack
+        const ase_exec = "/Applications/Aseprite.app/Contents/MacOS/aseprite";
+        await new Promise((resolve, reject) => {
+          // Execute Asesprite packer
+          const binary = `${ase_exec} -b ${source_glob} --sheet-pack --sheet ${target_png_path} --data ${target_json_path}`;
+          exec(binary, (err) => {
+            if(err) reject(err);
+            resolve(null);
+          });
+        });
+
+        // Clean up Asesprite Spritesheet Output
+        let sprite_names: string[] = [];
+        const sprite_json = JSON.parse(await fs.readFile(target_json_path, 'utf8'));
+        Object.entries(sprite_json.frames).forEach(([key, value]) => {
+          let sprite_data = value as any; 
+          delete sprite_json.frames[key]
+          key = key.split(".ase")[0]
+          sprite_json.frames[key] = sprite_data.frame;
+          sprite_names.push(key);
+        })
+
+        // Write Spritesheet JSON as TS Object
+        const spritesheet_json_typed = `
+type SpriteNames = ${sprite_names.map(v => "'" + v + "'").join(" | ")}
+type Spritesheet = Record<SpriteNames, Rect>
+
+export const spritesheet: Spritesheet = ${JSON.stringify(sprite_json.frames)}
+`
+        await fs.writeFile(target_json_ts_path, spritesheet_json_typed); 
+      } catch (error) {
+        console.log("Asesprite Error: ", error);
+      }
+    },
+  }
+}
+
+//
 async function applyClosure(js: string, chunk: any) {
   const tmpobj = tmp.fileSync();
   // replace all consts with lets to save about 50-70 bytes
@@ -89,7 +155,6 @@ async function applyClosure(js: string, chunk: any) {
     });
   })
 }
-
 
 function roadrollerPlugin(): Plugin {
   return {
