@@ -1,5 +1,6 @@
-import { canvas_width, container, createIconSvg, globals, resource_map, resource_list, Resources } from "./constants";
+import { canvas_width, container, createIconSvg, globals, resource_map, resource_list, Resources, pixel_size, rgb_gold } from "./constants";
 import { EntityGainDetail } from "./game-entity";
+import { sprite_text } from "./sprite-text";
 import { htmlFromString } from "./utils";
 
 
@@ -23,24 +24,16 @@ export class UIText {
     container.append(footer);
   }
 
+  // 
   addFooterElement(resource: ResourceDetails): Element {
     const icon_el = createIconSvg(resource_map[resource.type as Resources].icon);
-    const resource_el = htmlFromString(`<div class='${resource.name}'><p class='quantity'></p><p class='per_second'></p></div>`);
-    resource_el.prepend(icon_el);
+    const resource_el = htmlFromString(`<div class='${resource.name}'><div class='icon'></div><p class='quantity'></p><p class='per_second'></p></div>`);
+    resource_el.querySelector('.icon')!.append(icon_el);
     return resource_el;
   }
 
+  // 
   onUpdate() {
-    // Update resources count
-    resource_list.map(resource => {
-      const resource_el = container.querySelector('.' + resource.name)!;
-      const quantity_el = resource_el.querySelector(".quantity")!;
-      const per_second_el = resource_el.querySelector(".per_second")!;
-      quantity_el.textContent = Math.floor(resource.quantity) + '/' + resource.limit;
-      per_second_el.textContent = '+' + Math.floor(resource.increase_per_second * 10) / 10 + 's';
-    })
-    
-
     // Update message
     const active_entity = globals.active_entity;
     this.text_box.innerHTML = '';
@@ -57,7 +50,21 @@ export class UIText {
       `
     }
     // this.text_box.textContent = globals.active_message;
+  }
 
-    
+  // 
+  render(ctx: CanvasRenderingContext2D) {
+    resource_list.map((resource, i) => {
+      const resource_el = container.querySelector('.' + resource.name)!;
+      const quantity_el = resource_el.querySelector(".quantity")!;
+      const per_second_el = resource_el.querySelector(".per_second")!;
+      const resource_quantity = Math.floor(resource.quantity) + '/' + resource.limit;
+      const resource_ps = '+' + Math.floor(resource.increase_per_second * 10) / 10 + 's';
+
+      const x = (43 + i * 67) * pixel_size;
+      const y = 149.5 * pixel_size;
+      sprite_text.fillText(ctx, resource_quantity, x, y, 4, 0.25, rgb_gold); 
+      sprite_text.fillText(ctx, resource_ps, x * 1.2, y, 3, 0.1, rgb_gold); 
+    })
   }
 }

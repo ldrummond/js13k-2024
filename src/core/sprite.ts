@@ -1,11 +1,23 @@
-import { spritesheet_img } from "./constants";
+import { spritesheet } from "@/spritesheet";
+import { pixel_size, spritesheet_img } from "./constants";
+import { replaceColor } from "./utils";
 
+export const sprite_data_list: SpriteData[] = [
+  {
+    x: 175,
+    y: 7,
+    w: 12,
+    name: "minion",
+    spritesheet_rect: spritesheet.minion
+  },
+]
+
+// 
 export function canvasFromSpritesheet(rect: Rect, canvas_width?: number, canvas_height?: number): { canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D } {
   const canvas = document.createElement("canvas");
-  canvas.style.imageRendering = 'pixelated';
   const ctx = canvas.getContext("2d")!;
   canvas_width = canvas_width || rect.w;
-  canvas_height = canvas_height || rect.w;
+  canvas_height = canvas_height || rect.h;
   canvas.width = canvas_width;
   canvas.height = canvas_height;
   ctx.imageSmoothingEnabled = false; 
@@ -13,6 +25,7 @@ export function canvasFromSpritesheet(rect: Rect, canvas_width?: number, canvas_
   return {canvas, ctx};
 }
 
+// 
 export default class Sprite {
   x: number;
   y: number;
@@ -31,17 +44,44 @@ export default class Sprite {
     this.canvas = canvas;
     canvas.width = this.spritesheet_rect.w;
     canvas.height = this.spritesheet_rect.h;
+
+    // Context
     const ctx = canvas.getContext("2d")!;
     this.ctx = ctx;
 
-    // Draw canvas for each sprite
-    this.x = sprite_data.x;
-    this.y = sprite_data.y;
-    this.w = sprite_data.w;
-    this.h = this.spritesheet_rect.h / this.spritesheet_rect.w * sprite_data.w; // Maintain aspect ratio
+    // Canvas sizing and position for each sprite
+    this.x = sprite_data.x * pixel_size;
+    this.y = sprite_data.y * pixel_size;
+    this.w = sprite_data.w * pixel_size;
+    const rendered_scale_ratio = this.w / this.spritesheet_rect.w; 
+    const sprite_aspect = this.spritesheet_rect.h / this.spritesheet_rect.w;
+    this.h = this.w * sprite_aspect; // Maintain aspect ratio
+
+    // If mirrored, duplicate base canvas
+    if(sprite_data.mirrored) {
+      this.w *= 2;
+      this.w += sprite_data.mirrored * rendered_scale_ratio;
+      canvas.width *= 2;
+      canvas.width += sprite_data.mirrored;
+    }
+
+    // Draw Image Params
+    const source_x = this.spritesheet_rect.x;
+    const source_y = this.spritesheet_rect.y;
+    const source_w = this.spritesheet_rect.w;
+    const source_h = this.spritesheet_rect.h;
 
     // Draw sprite to canvas
-    ctx.drawImage(spritesheet_img, this.spritesheet_rect.x, this.spritesheet_rect.y, this.spritesheet_rect.w, this.spritesheet_rect.h, 0, 0, this.spritesheet_rect.w, this.spritesheet_rect.h);
+    ctx.drawImage(spritesheet_img, source_x, source_y, source_w, source_h, 0, 0, source_w, source_h);
+
+    // Draw mirrored
+    if(sprite_data.mirrored) {
+      ctx.save();
+      ctx.scale(-1, 1);
+      ctx.translate(-canvas.width, 0)
+      ctx.drawImage(spritesheet_img, source_x, source_y, source_w, source_h, 0, 0, source_w, source_h);
+      ctx.restore();
+    }
   }
 
   // 

@@ -1,5 +1,4 @@
 
-type SpriteNames = 'avatar' | 'character-alt 0' | 'character-alt 1' | 'minion' | 'spritesheet' | 'text'
-type Spritesheet = Record<SpriteNames, Rect>
-
-export const spritesheet: Spritesheet = {"avatar":{"x":347,"y":0,"w":8,"h":8},"character-alt 0":{"x":180,"y":0,"w":30,"h":40},"character-alt 1":{"x":210,"y":0,"w":30,"h":40},"minion":{"x":240,"y":5,"w":14,"h":14},"spritesheet":{"x":0,"y":0,"w":180,"h":169},"text":{"x":240,"y":0,"w":107,"h":5}}
+export type SpriteNames = 'avatar' | 'bone' | 'brain' | 'character-alt 0' | 'character-alt 1' | 'claw' | 'eye' | 'foot' | 'horn' | 'kidney' | 'lungs' | 'minion' | 'pituitary' | 'text'
+export type Spritesheet = Record<SpriteNames, Rect>
+export const spritesheet: Spritesheet = {"avatar":{"x":87,"y":5,"w":8,"h":8},"bone":{"x":210,"y":0,"w":19,"h":7},"brain":{"x":197,"y":0,"w":13,"h":11},"character-alt 0":{"x":0,"y":0,"w":27,"h":40},"character-alt 1":{"x":27,"y":0,"w":23,"h":39},"claw":{"x":182,"y":0,"w":15,"h":13},"eye":{"x":76,"y":5,"w":11,"h":7},"foot":{"x":67,"y":5,"w":9,"h":10},"horn":{"x":50,"y":5,"w":8,"h":13},"kidney":{"x":58,"y":5,"w":9,"h":11},"lungs":{"x":167,"y":0,"w":15,"h":23},"minion":{"x":95,"y":5,"w":7,"h":7},"pituitary":{"x":229,"y":0,"w":5,"h":5},"text":{"x":50,"y":0,"w":117,"h":5}}

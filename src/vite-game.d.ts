@@ -1,7 +1,7 @@
 declare module '*.jpg';
 declare module '*.png';
-declare module '*.json';
 
+type rgb = [number, number, number]
 type hsl = [number, number, number]
 
 interface Point {
@@ -30,11 +30,11 @@ interface ResourceDetails {
 interface GameData { [key in Resources]: ResourceDetails};
 
 interface SpriteData {
-  interactive: boolean; // TODO: Remove?
   x: number;
   y: number;
   w: number;
   // h: number;
+  mirrored?: number;
   name: string;
   spritesheet_rect: Rect;
 }

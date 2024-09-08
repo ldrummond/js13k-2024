@@ -51,7 +51,7 @@ export default defineConfig(({ command, mode }) => {
       }
     };
     // @ts-ignore
-    config.plugins.append([typescriptPlugin(), closurePlugin(), roadrollerPlugin(), ectPlugin()]);
+    config.plugins.push(typescriptPlugin(), closurePlugin(), roadrollerPlugin(), ectPlugin());
   }
 
   return config;
@@ -77,6 +77,16 @@ function asespritePlugin(): Plugin {
     async configResolved(_config) {
       config = _config;
     },
+    handleHotUpdate({ file, server }) {
+      if (file.endsWith('.ase') || file.endsWith('.aseprite')) {
+        console.log('Sprite file updated. Reloading')
+        server.ws.send({
+          type: 'full-reload',          
+          path: '*'
+        });
+        return [];
+      }
+    },
     async buildStart() {
       const source_dir = path.resolve(config.root, "src/assets/sprites/");
       const source_glob = source_dir + '/**';
@@ -94,7 +104,7 @@ function asespritePlugin(): Plugin {
         const ase_exec = "/Applications/Aseprite.app/Contents/MacOS/aseprite";
         await new Promise((resolve, reject) => {
           // Execute Asesprite packer
-          const binary = `${ase_exec} -b ${source_glob} --sheet-pack --sheet ${target_png_path} --data ${target_json_path}`;
+          const binary = `${ase_exec} -b ${source_glob} --trim --sheet-pack --sheet ${target_png_path} --data ${target_json_path}`;
           exec(binary, (err) => {
             if(err) reject(err);
             resolve(null);
@@ -114,9 +124,8 @@ function asespritePlugin(): Plugin {
 
         // Write Spritesheet JSON as TS Object
         const spritesheet_json_typed = `
-type SpriteNames = ${sprite_names.map(v => "'" + v + "'").join(" | ")}
-type Spritesheet = Record<SpriteNames, Rect>
-
+export type SpriteNames = ${sprite_names.map(v => "'" + v + "'").join(" | ")}
+export type Spritesheet = Record<SpriteNames, Rect>
 export const spritesheet: Spritesheet = ${JSON.stringify(sprite_json.frames)}
 `
         await fs.writeFile(target_json_ts_path, spritesheet_json_typed); 
@@ -127,7 +136,12 @@ export const spritesheet: Spritesheet = ${JSON.stringify(sprite_json.frames)}
   }
 }
 
-//
+/**
+ * 
+ * @param js 
+ * @param chunk 
+ * @returns 
+ */
 async function applyClosure(js: string, chunk: any) {
   const tmpobj = tmp.fileSync();
   // replace all consts with lets to save about 50-70 bytes
@@ -156,6 +170,9 @@ async function applyClosure(js: string, chunk: any) {
   })
 }
 
+/**
+ * 
+ */
 function roadrollerPlugin(): Plugin {
   return {
     name: 'vite:roadroller',

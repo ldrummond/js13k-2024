@@ -1,4 +1,14 @@
 /* Get rid of any margins, set background black, use flexbox to center */
+/* REM Defined in Constants */
+/* TODO: SVG fills and strokes */
+/* TODO: Color variables */
+:root {
+    --c-var: grey;;
+    --c-gold: rgb(155, 132, 2);
+    --c-black: rgb(34, 0, 3);
+    --c-red: #832323;
+}
+
 * {
     box-sizing: border-box;
 }
@@ -20,8 +30,8 @@ canvas {
     height: min(100vh, calc(100vw * 9/16));
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
-    border: 8px solid rgb(34, 0, 3);
+    translate: -50% -50%;
+    border: 0.5rem solid var(--c-black);
     box-sizing: border-box;
 }
 
@@ -32,33 +42,32 @@ canvas {
 }
 
 #text {
-    /* TODO: Better way to approach this positioning */
     position: absolute;
-    top: 5%;
-    right: 4%;
-    width: 37%;
-    height: 12%;
-    color: grey;
+    top: 1.7rem;
+    right: 2.8rem;
+    width: 22rem;
+    height: 6rem;
+    color: var(--c-grey);
     font-weight: 100;
-    font-size: 0.8em;
+    font-size: 1rem;
 }
 
 #text p {
-    margin-bottom: 0.2em;
+    margin-bottom: 0.2rem;
 }
 
 #text p:first-child {
-    color: rgb(155, 132, 2);
+    color: var(--c-gold);
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.1rem;
 }
 
 svg {
-    fill: rgb(198, 165, 1);
-    stroke: rgb(56, 21, 1);
-    stroke-width: 2px;
-    width: 50px;
-    height: 50px;
+    fill: var(--c-gold);
+    stroke: var(--c-red);
+    stroke-width: 0.1rem;
+    width: 12rem;
+    height: 12rem;
 }
 
 .resource-gain {
@@ -67,71 +76,82 @@ svg {
     align-items: center;
     justify-content: center;
     transition: 1s ease-in;
-    border: 2px solid rgb(155, 132, 2);
-    width: 26px;
-    height: 32px;
-    margin-bottom: 50px;
+    border: 0.2rem solid var(--c-gold);
+    width: 2rem;
+    height: 3rem;
+    margin-bottom: 5rem;
     animation: fadeaway 1s ease-out forwards;
     /* TODO: Colors */
-    background: grey;
+    background: var(--c-grey);
     pointer-events: none;
 }
 
 @keyframes fadeaway {
     0% {
-        transform: translate(-50%, -110%);
+        translate: -50% -110%;
     }
     50% {
         opacity: 1;
     }
     100% {
-        transform: translate(-50%, -150%);
+        translate: -50% -150%;
         opacity: 0;
     }
 }
 
 #footer {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
+    bottom: 1.2rem;
+    left: 50%;
+    translate: -50%;
+    width: 65rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 2% 5%;
+}
+
+#footer > * {
+    width: 15rem;
+    color: var(--c-gold);
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    border: 0.25rem solid var(--c-red);
+}
+
+#footer .icon {
+    position: relative;
+    width: 4rem;
+    height: 4rem;
+    padding: 0.5rem;
+    margin-right: 1.5rem;
+}
+
+#footer .quantity {
+    width: 5rem;
+}
+
+#footer .per_second {
+    font-size: 1rem;
+}
+
+#footer .icon:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    rotate: 45deg;
+    background: #141615;
+    border: 0.3rem solid var(--c-red);
 }
 
 #footer svg {
+    width: 100%;
+    height: 100%;
     stroke: #141615;
     position: relative;
-    z-index: 1;
-    margin-right: 2vw;
-    width: 4.5vw;
-    margin-top: -0.25vw;
-    margin-left: 0.45vw;
-}
-
-#footer > div:after {
-    content: "";
-    position: absolute;
-    /* z-index: 0; */
-    width: 5vw;
-    height: 5vw;
-    transform: rotate(45deg);
-    background: #141615;
-    border: 2px solid #832323;
-}
-
-#footer > div {
-    color: #CFB04B;
-    font-size: 18px;
-    /* width: 25%; */
-    display: flex;
-    align-items: center;
-}
-
-#footer p {
-    margin-left: 1vw;
 }
 
 /* TODO: Remove */
@@ -141,7 +161,7 @@ svg {
     right: 0;
     width: 200px;
     height: auto;
-    border: 1px solid grey;
+    border: 1px solid var(--c-grey);
     background-color: rgba(255, 255, 255, 0.7);
     font-size: 12px;
     z-index: 1000;
@@ -163,7 +183,7 @@ p {
 #debug .fill {
     width: 100%;
     height: 8px;
-    border: 1px solid black;
+    border: 1px solid var(--c-black);
     position: relative;
     overflow: hidden;
 }
@@ -175,5 +195,5 @@ p {
     position: absolute;
     top: 0;
     left: 0;
-    transform: translateX(-100%);
+    translate: -100% 0;
 }

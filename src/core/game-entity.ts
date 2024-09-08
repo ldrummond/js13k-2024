@@ -1,8 +1,8 @@
-import { click_duration, click_offset, confidence, createResourceTooltip, globals, hormones, knowledge, maturity, resource_map, Resources, spritesheet_img, tooltip_timeout } from "./constants";
+import { click_duration, click_offset, confidence, createResourceTooltip, globals, hormones, knowledge, maturity, resource_map, Resources, sprite_border_color, sprite_border_hover_color, spritesheet_img, tooltip_timeout } from "./constants";
 import Sprite from "./sprite";
-import { dupeCanvas, ranRGB } from "./utils";
+import { dupeCanvas, ranRGB, replaceColor } from "./utils";
 import { addToHitmask } from "./hitmask";
-import { spritesheet } from "@/spritesheet";
+import { SpriteNames, spritesheet } from "@/spritesheet";
 
 enum GameEntityState {
   "LOCKED",
@@ -32,6 +32,10 @@ export interface EntityGain {
   [Resources.KNOWLEDGE]?: EntityGainDetail;
 }
 
+interface NamedSpriteData extends SpriteData {
+  name: SpriteNames
+}
+
 interface GameEntityParams {
   name: string;
   description: string;
@@ -39,12 +43,34 @@ interface GameEntityParams {
   cooldown_duration?: number;
   cost?: EntityCost;
   gain: EntityGain;
-  sprite_data: SpriteData;
+  sprite_data: NamedSpriteData;
   is_one_time_purchase?: boolean; 
   onClick?: () => void;
 }
 
-export const game_entities_data: GameEntityParams[] = [
+// TODO: Remove name from sprite?
+export const game_entities_data_list: GameEntityParams[] = [
+  {
+    name: "eye",
+    description: "the final evolution",
+    state: GameEntityState.LOCKED,
+    cost: {
+      // [Resources.HORMONES]: 10
+    },
+    gain: {
+      // [Resources.HORMONES]: {
+      //   per_second: 0.5
+      // }
+    },
+    is_one_time_purchase: true,
+    sprite_data: {
+      x: 37,
+      y: 12,
+      w: 18,
+      name: "eye",
+      spritesheet_rect: spritesheet.eye
+    },
+  },
   {
     // TODO: Simplify locked vs click
     name: "pituitary",
@@ -59,21 +85,41 @@ export const game_entities_data: GameEntityParams[] = [
         per_second: 0.5
       }
     },
-    onClick() {
+    is_one_time_purchase: true,
+    sprite_data: {
+      x: 40,
+      y: 55,
+      w: 9,
+      name: "pituitary",
+      spritesheet_rect: spritesheet.pituitary
+    },
+  },
+  {
+    // TODO: Simplify locked vs click
+    name: "kidney",
+    description: "starts hormone production.",
+    // cooldown_duration: 2000,
+    state: GameEntityState.LOCKED,
+    cost: {
+      [Resources.HORMONES]: 10
+    },
+    gain: {
+      [Resources.HORMONES]: {
+        per_second: 0.5
+      }
     },
     is_one_time_purchase: true,
     sprite_data: {
-      interactive: true,
-      x: 125,
-      y: 190,
-      w: 40,
-      name: "minion",
-      spritesheet_rect: spritesheet.minion
+      x: 16,
+      y: 78,
+      w: 15,
+      name: "kidney",
+      spritesheet_rect: spritesheet.kidney
     },
   },
   {
     name: "brain",
-    description: "Internal logic center",
+    description: "The root of all evil",
     cooldown_duration: 1000,
     state: GameEntityState.AVAILABLE, 
     gain: {
@@ -81,19 +127,52 @@ export const game_entities_data: GameEntityParams[] = [
         quantity: 10
       }
     },
-    onClick() {
-    },
     sprite_data: {
-      interactive: true,
-      x: 110,
-      y: 140,
-      w: 80,
-      name: "avatar",
-      spritesheet_rect: spritesheet.avatar
+      x: 34,
+      y: 31,
+      w: 22,
+      name: "brain",
+      spritesheet_rect: spritesheet.brain
     },
   },
   {
-    name: "hair",
+    name: "lungs",
+    description: "Throat organs",
+    cooldown_duration: 1000,
+    state: GameEntityState.LOCKED, 
+    gain: {
+      [Resources.HORMONES]: {
+        quantity: 10
+      }
+    },
+    sprite_data: {
+      x: 34,
+      y: 68,
+      w: 23,
+      name: "lungs",
+      spritesheet_rect: spritesheet.lungs
+    },
+  },
+  {
+    name: "bones",
+    description: "Growth spurt",
+    cooldown_duration: 1000,
+    state: GameEntityState.LOCKED, 
+    gain: {
+      [Resources.HORMONES]: {
+        quantity: 10
+      }
+    },
+    sprite_data: {
+      x: 33,
+      y: 109,
+      w: 24,
+      name: "bone",
+      spritesheet_rect: spritesheet.bone
+    },
+  },
+  {
+    name: "claws",
     description: "null",
     cooldown_duration: 2000,
     state: GameEntityState.LOCKED, 
@@ -106,12 +185,12 @@ export const game_entities_data: GameEntityParams[] = [
       // game_data.hormones.increase_per_second += 0.1;
     },
     sprite_data: {
-      interactive: true,
-      x: 20,
-      y: 30,
-      w: 60,
-      name: "character-alt 0",
-      spritesheet_rect: spritesheet["character-alt 0"]
+      x: 14,
+      y: 54,
+      w: 19,
+      mirrored: 18,
+      name: 'claw',
+      spritesheet_rect: spritesheet.claw
     },
   },
   {
@@ -128,12 +207,31 @@ export const game_entities_data: GameEntityParams[] = [
       // game_data.hormones.increase_per_second += 0.1;
     },
     sprite_data: {
-      interactive: true,
-      x: 20,
-      y: 30,
-      w: 60,
-      name: "character-alt 0",
-      spritesheet_rect: spritesheet["character-alt 0"],
+      x: 16,
+      y: 10,
+      w: 14,
+      mirrored: 17,
+      name: 'horn',
+      spritesheet_rect: spritesheet.horn,
+    },
+  },
+  {
+    name: "hooves",
+    description: "null",
+    cooldown_duration: 2000,
+    state: GameEntityState.LOCKED, 
+    gain: {
+      [Resources.MATURITY]: {
+        per_second: 1
+      }
+    },
+    sprite_data: {
+      x: 16,
+      y: 120,
+      w: 16,
+      mirrored: 15,
+      name: 'foot',
+      spritesheet_rect: spritesheet.foot,
     },
   },
 ];
@@ -181,67 +279,99 @@ export class GameEntity extends Sprite {
     this.sprite_data = sprite_data;
     this.hitmask_color = ranRGB();
 
+    const temp_canvas = dupeCanvas(this.canvas);
+    const temp_ctx = temp_canvas.getContext("2d")!;
+
     // Add additional canvases for hover, hitmask, etc.
     // TODO: Save restore magic, simplify all this
     // 
+
+    // 
+    // HITMASK LAYER
+    // 
     // Fill with entity hitmask color
-    this.ctx.globalCompositeOperation = "source-over";
-    this.ctx.fillStyle = this.hitmask_color;
-    this.ctx.fillRect(0, 0, this.w, this.h);
+    temp_ctx.globalCompositeOperation = "source-over";
+    temp_ctx.fillStyle = this.hitmask_color;
+    temp_ctx.fillRect(0, 0, this.w, this.h);
 
     // Mask out the sprite
-    this.ctx.globalCompositeOperation = "destination-in";
-    this.ctx.drawImage(spritesheet_img, spritesheet_rect.x, spritesheet_rect.y, spritesheet_rect.w, spritesheet_rect.h, 0, 0, spritesheet_rect.w, spritesheet_rect.h);
+    temp_ctx.globalCompositeOperation = "destination-in";
+    temp_ctx.drawImage(this.canvas, 0, 0);
 
     // Send to hitmask
-    addToHitmask(this.canvas, this.x, this.y, this.w, this.h);
+    addToHitmask(temp_canvas, this.x, this.y, this.w, this.h);
+    // 
+    // 
 
     // Redraw the sprite
-    this.ctx.globalCompositeOperation = "source-atop";
-    this.ctx.drawImage(spritesheet_img, spritesheet_rect.x, spritesheet_rect.y, spritesheet_rect.w, spritesheet_rect.h, 0, 0, spritesheet_rect.w, spritesheet_rect.h);
-    document.body.append(this.canvas);
-  
-    // Darken with grey
-    this.ctx.fillStyle = 'rgba(0,0,0,0.3)';
-    this.ctx.fillRect(0, 0, this.w, this.h);
+    temp_ctx.globalCompositeOperation = "source-atop";
+    temp_ctx.drawImage(this.canvas, 0, 0);
+    document.body.append(temp_canvas);
 
-    // Duplicate canvas to grey
-    this.hover_canvas = dupeCanvas(this.canvas);
+    // 
+    // HOVER LAYER
+    // 
+    replaceColor(temp_canvas, temp_ctx, sprite_border_color, sprite_border_hover_color);
+    this.hover_canvas = dupeCanvas(temp_canvas);
     document.body.append(this.hover_canvas);
+    replaceColor(temp_canvas, temp_ctx, sprite_border_hover_color, sprite_border_color);
+    // 
+    // 
+    // 
 
+    // 
+    // COOLDOWN LAYER
+    // 
     // Darken with darkgrey
-    this.ctx.fillStyle = 'rgba(0,0,0,0.5)';
-    this.ctx.fillRect(0, 0, this.w, this.h);
+    temp_ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    temp_ctx.fillRect(0, 0, this.w, this.h);
     
     // Duplicate canvas to darkgrey
-    this.cooldown_canvas = dupeCanvas(this.canvas);
+    this.cooldown_canvas = dupeCanvas(temp_canvas);
     document.body.append(this.cooldown_canvas);
 
+    // 
+    // LOCKED LAYER
+    // 
     // Darken with black
-    this.ctx.fillStyle = 'rgba(0,0,0,0.3)';
-    this.ctx.fillRect(0, 0, this.w, this.h);
+    temp_ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    temp_ctx.fillRect(0, 0, this.w, this.h);
 
     // Duplicate canvas to black
-    this.locked_canvas = dupeCanvas(this.canvas);
+    this.locked_canvas = dupeCanvas(temp_canvas);
     document.body.append(this.locked_canvas);
+    // 
+    // 
+    // 
 
     // Redraw the sprite
-    this.ctx.drawImage(spritesheet_img, spritesheet_rect.x, spritesheet_rect.y, spritesheet_rect.w, spritesheet_rect.h, 0, 0, spritesheet_rect.w, spritesheet_rect.h);
+    temp_ctx.drawImage(this.canvas, 0, 0);
 
+    // 
+    // CLICK LAYER
+    // 
     // Lighten with white
-    this.ctx.fillStyle = 'rgba(255,200,200,0.6)';
-    this.ctx.fillRect(0, 0, this.w, this.h);
+    replaceColor(temp_canvas, temp_ctx, sprite_border_color, sprite_border_hover_color);
+    temp_ctx.fillStyle = 'rgba(255,200,200,0.6)';
+    temp_ctx.fillRect(0, 0, this.w, this.h);
 
     // Duplicate canvas to white
-    this.click_canvas = dupeCanvas(this.canvas);
+    this.click_canvas = dupeCanvas(temp_canvas);
     document.body.append(this.click_canvas);
+    replaceColor(temp_canvas, temp_ctx, sprite_border_hover_color, sprite_border_color);
+    // 
+    // 
+    // 
 
     // Redraw the sprite
-    this.ctx.clearRect(0,0, this.w, this.h);
-    this.ctx.globalCompositeOperation = "source-over";
-    this.ctx.drawImage(spritesheet_img, spritesheet_rect.x, spritesheet_rect.y, spritesheet_rect.w, spritesheet_rect.h, 0, 0, spritesheet_rect.w, spritesheet_rect.h);
+    temp_ctx.clearRect(0,0, this.w, this.h);
+    temp_ctx.globalCompositeOperation = "source-over";
+    temp_ctx.drawImage(this.canvas, 0, 0);
   }
 
+  /**
+   * 
+   */
   onUpdate() {
     const now = Date.now();
     const is_hovering = this.hitmask_color === globals.hitmask_active_color;
@@ -295,18 +425,6 @@ export class GameEntity extends Sprite {
       this.is_clicking = true; 
       this.state = GameEntityState.COOLDOWN;
 
-      // Gain
-      // TODO: function this
-      
-      // game_data.hormones.value += this.gain.hormones?.quantity || 0;
-      // game_data.hormones.increase_per_second += this.gain.hormones?.per_second || 0;
-      // game_data.confidence.value += this.gain.confidence?.quantity || 0;
-      // game_data.confidence.increase_per_second += this.gain.confidence?.per_second || 0;
-      // game_data.knowledge.value += this.gain.knowledge?.quantity || 0;
-      // game_data.knowledge.increase_per_second += this.gain.knowledge?.per_second || 0;
-      // game_data.maturity.value += this.gain.maturity?.quantity || 0;
-      // game_data.maturity.increase_per_second += this.gain.maturity?.per_second || 0;
-
       // Animate gain
       // TODO: Change resource map to resource list 
       // Or add function getResourceByResource
@@ -333,9 +451,7 @@ export class GameEntity extends Sprite {
     let cw = this.canvas.width;
     let ch = this.canvas.height;
 
-    // Cleanup
-    // main_ctx.clearRect(this.x, y - click_offset, this.w, this.h + click_offset * 2);
-
+    // Decide what to render
     if(this.state === GameEntityState.LOCKED) {
       canvas_to_render = this.locked_canvas;
     }

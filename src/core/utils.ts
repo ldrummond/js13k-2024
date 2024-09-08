@@ -1,5 +1,8 @@
 
 // Functions
+
+import { pixel_size } from "./constants";
+
 // 
 export function ranInt(v: number) {
   return Math.round(Math.random() * v);
@@ -20,12 +23,6 @@ export function ranHSL(hsl: hsl, variance: number = 10) {
 
 // 
 // 
-export function roundToPixel(v: number, _pixel_size: number) {
-  return Math.ceil(v / _pixel_size) * _pixel_size;
-}
-
-// 
-// 
 export function dupeCanvas(canvas: HTMLCanvasElement) {
   const new_canvas = canvas.cloneNode() as HTMLCanvasElement;
   const new_ctx = new_canvas.getContext('2d');
@@ -39,54 +36,92 @@ export function htmlFromString(html_string: string) {
   temp.innerHTML = html_string;
   return temp.children[0];
 }
- 
+
 // 
-// 
-export function createPattern(
-  _width: number = 100, 
-  _height: number = 100, 
-  pixel_width: number = 10,
-  pixel_height: number = 10, 
-  hsl: hsl,
-  variance?: number,
-  _canvas?: HTMLCanvasElement,
-  _context?: CanvasRenderingContext2D,
-): CanvasPattern {
-
-  const canvas = _canvas || document.createElement("canvas");
-  canvas.width = _width;
-  canvas.height = _height;
-  const ctx = _context || canvas.getContext("2d")!;
-
-  ctx.fillStyle = 'blue';
-  ctx.fillRect(0, 0, _width, _height);
-
-  for (let c = 0; c < _width / pixel_width; c++) {
-    for(let r = 0; r < _height / pixel_height; r++) {
-      ctx.fillStyle=ranHSL(hsl,Math.random() > 0.8 ? variance : 0);
-      ctx.fillRect(c * pixel_width, r * pixel_height, pixel_width, pixel_height);
+export function replaceColor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, color_a: rgb, color_b: rgb) {
+  let image_data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  let pixel_data = image_data.data;
+  for (let i = 0; i < pixel_data.length; i += 4) { // red, green, blue, and alpha
+    //short way to compare numerical arrays
+    const rgb = pixel_data.slice(i,i+3);
+    if(rgb+'' == color_a+'') {
+      pixel_data[i] = color_b[0];
+      pixel_data[i+1] = color_b[1];
+      pixel_data[i+2] = color_b[2];
     }
   }
-  return ctx.createPattern(canvas, "repeat")!;
+  ctx.putImageData(image_data, 0, 0);
 }
 
 // 
 // 
-export function fillCanvasWithRandomPixels(
+export function roundToPixel(v: number) {
+  return Math.ceil(v / pixel_size) * pixel_size;
+}
+
+// 
+// 
+export function fillRectWithRandom(
   ctx: CanvasRenderingContext2D,
   x = 0,
   y = 0,
-  _pixel_count_width: number, 
-  _pixel_count_height: number, 
-  _pixel_size: number,
+  w: number, 
+  h: number, 
   hsl: hsl,
-  variance = 12
+  variance = 12,
+  border_width?: number
 ) {
-  for (let c = 0; c < _pixel_count_width; c++) {
-    for(let r = 0; r < _pixel_count_height; r++) {
-      // TODO: Change to 0,0,0
-      ctx.fillStyle=ranHSL(hsl,Math.random() > 0.8 ? variance : 0);
-      ctx.fillRect(c * _pixel_size + x, r * _pixel_size + y, _pixel_size * 1.2, _pixel_size * 1.2);
+  const pixel_count_w = Math.ceil(w / pixel_size);
+  const pixel_count_h = Math.ceil(h / pixel_size);
+  const border_pixel_size = (border_width || 1) / pixel_size; 
+
+  // If border width, only fill for border
+  if(!border_width) {
+    ctx.fillStyle = ranHSL(hsl, 0);
+    ctx.fillRect(x, y, pixel_count_w * pixel_size, pixel_count_h * pixel_size);
+  }
+
+  for (let c = 0; c <= pixel_count_w; c++) {
+    for(let r = 0; r <= pixel_count_h; r++) {
+      const within_border = c <= border_pixel_size || c >= pixel_count_w - border_pixel_size || r <= border_pixel_size || r >= pixel_count_h - border_pixel_size;
+      if(!border_width || within_border) {
+        // TODO: Change to 0,0,0
+        ctx.fillStyle = ranHSL(hsl, Math.random() > 0.8 ? variance : 0);
+        ctx.fillRect(c * pixel_size + x, r * pixel_size + y, pixel_size * 1, pixel_size * 1);
+      } 
     }
   }
+}
+
+// 
+// 
+export function createPattern(
+  w: number = 10, 
+  h: number = 10, 
+  hsl: hsl,
+  variance?: number,
+): CanvasPattern {
+
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  canvas.style.imageRendering = 'pixelated';
+  const ctx = canvas.getContext("2d")!;
+  ctx.imageSmoothingEnabled = false;
+  canvas.style.width = '100px';
+  canvas.style.height = '100px';
+
+  // TODO: Delete
+  document.body.append(canvas);
+  canvas.style.background = 'blue';
+
+  // TODO: Combine these two?
+  for (let c = 0; c < w; c++) {
+    for (let r = 0; r < h; r++) {
+      ctx.fillStyle = ranHSL(hsl, Math.random() > 0.8 ? variance : 0);
+      ctx.fillRect(c, r, 1, 1); 
+    }
+  }
+
+  return ctx.createPattern(canvas, "repeat")!;
 }

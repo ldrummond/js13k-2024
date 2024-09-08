@@ -18,6 +18,14 @@ export const hsl_grey: hsl = [0, 0, 10];
 export const hsl_white: hsl = [0, 0, 20];
 export const hsl_red: hsl = [9,70,20];
 
+export const rgb_white: rgb = [255,255,255];
+export const rgb_gold: rgb = [207,176,75];
+export const rgb_brown: rgb = [93,52,52];
+
+export const sprite_border_color: rgb = rgb_brown;
+export const sprite_border_hover_color: rgb = [140,49,67];
+
+
 // Constants
 export const click_offset = 2;
 export const click_duration = 160;
@@ -44,6 +52,7 @@ export const hitmask_canvas = dupeCanvas(main_canvas)
 export const pixel_count_width = 300;
 export const pixel_count_height = Math.ceil(pixel_count_width * 9 / 16);
 export const pixel_size = canvas_rect.width / pixel_count_width;
+document.documentElement.style.fontSize = (pixel_size * 4) + 'px';
 
 // Sprites
 export const spritesheet_img = document.createElement("img");
