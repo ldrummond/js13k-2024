@@ -3,14 +3,27 @@
 /* TODO: SVG fills and strokes */
 /* TODO: Color variables */
 :root {
-    --c-var: grey;;
+    --c-darkgrey: #111;
     --c-gold: rgb(155, 132, 2);
     --c-black: rgb(34, 0, 3);
     --c-red: #832323;
+    --c-darkred: #5d3434;
 }
 
 * {
     box-sizing: border-box;
+}
+
+#start {
+    position: absolute;
+    z-index: 10;
+    left: 0;
+}
+
+#mute {
+    position: absolute;
+    z-index: 10;
+    left: 100px;
 }
 
 html, body {
@@ -31,8 +44,19 @@ canvas {
     top: 50%;
     left: 50%;
     translate: -50% -50%;
-    border: 0.5rem solid var(--c-black);
     box-sizing: border-box;
+}
+
+#container::after {
+    content: "";
+    position: absolute;
+    left: 22.3rem;
+    top: 2.2rem;
+    width: 19.8rem;
+    height: 32.5rem;
+    background: linear-gradient(var(--c-black), var(--c-darkred));
+    opacity: 0.5;
+    mix-blend-mode: darken;
 }
 
 #container canvas {
@@ -64,7 +88,7 @@ canvas {
 
 svg {
     fill: var(--c-gold);
-    stroke: var(--c-red);
+    stroke: var(--c-black);
     stroke-width: 0.1rem;
     width: 12rem;
     height: 12rem;
@@ -101,10 +125,9 @@ svg {
 
 #footer {
     position: absolute;
-    bottom: 1.2rem;
-    left: 50%;
-    translate: -50%;
-    width: 65rem;
+    bottom: 1.5rem;
+    width: 69rem;
+    margin-left: 5rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -116,19 +139,18 @@ svg {
     font-size: 1.5rem;
     display: flex;
     align-items: center;
-    border: 0.25rem solid var(--c-red);
 }
 
 #footer .icon {
     position: relative;
-    width: 4rem;
-    height: 4rem;
+    width: 2.5rem;
+    height: 2.5rem;
     padding: 0.5rem;
-    margin-right: 1.5rem;
 }
 
+/* TODO: Delete? */
 #footer .quantity {
-    width: 5rem;
+    width: 5.5rem;
 }
 
 #footer .per_second {
@@ -143,19 +165,22 @@ svg {
     right: 0;
     bottom: 0;
     rotate: 45deg;
-    background: #141615;
-    border: 0.3rem solid var(--c-red);
+    background: var(--c-darkred);
+    border: 0.2rem solid var(--c-darkred);
 }
 
 #footer svg {
-    width: 100%;
-    height: 100%;
-    stroke: #141615;
+    width: 180%;
+    height: 180%;
     position: relative;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
 }
 
 /* TODO: Remove */
-#debug {
+/* #debug {
+    display: none;
     position: absolute;
     top: 0;
     right: 0;
@@ -196,4 +221,4 @@ p {
     top: 0;
     left: 0;
     translate: -100% 0;
-}
+} */

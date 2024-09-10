@@ -33,8 +33,6 @@ interface SpriteData {
   x: number;
   y: number;
   w: number;
-  // h: number;
   mirrored?: number;
-  name: string;
-  spritesheet_rect: Rect;
+  spritesheet_rect: Rect[];
 }

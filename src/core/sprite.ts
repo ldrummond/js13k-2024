@@ -2,16 +2,6 @@ import { spritesheet } from "@/spritesheet";
 import { pixel_size, spritesheet_img } from "./constants";
 import { replaceColor } from "./utils";
 
-export const sprite_data_list: SpriteData[] = [
-  {
-    x: 175,
-    y: 7,
-    w: 12,
-    name: "minion",
-    spritesheet_rect: spritesheet.minion
-  },
-]
-
 // 
 export function canvasFromSpritesheet(rect: Rect, canvas_width?: number, canvas_height?: number): { canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D } {
   const canvas = document.createElement("canvas");
@@ -37,7 +27,7 @@ export default class Sprite {
   sprite_data: SpriteData;
 
   constructor(sprite_data: SpriteData) {
-    this.spritesheet_rect = sprite_data.spritesheet_rect;
+    this.spritesheet_rect = sprite_data.spritesheet_rect[0];
     this.sprite_data = sprite_data;
     
     const canvas = document.createElement("canvas");

@@ -3,239 +3,11 @@ import Sprite from "./sprite";
 import { dupeCanvas, ranRGB, replaceColor } from "./utils";
 import { addToHitmask } from "./hitmask";
 import { SpriteNames, spritesheet } from "@/spritesheet";
+import { GameEntityState, EntityCost, EntityGain, GameEntityParams, EntityGainDetail } from "@/data/game-entities";
 
-enum GameEntityState {
-  "LOCKED",
-  "AVAILABLE",
-  "FLASHING",
-  "HOVERING",
-  "CLICKING",
-  "COOLDOWN"
-}
-
-interface EntityCost {
-  [Resources.HORMONES]?: number;
-  [Resources.MATURITY]?: number;
-  [Resources.CONFIDENCE]?: number;
-  [Resources.KNOWLEDGE]?: number;
-}
-
-export interface EntityGainDetail {
-  quantity?: number;
-  per_second?: number;
-}
-
-export interface EntityGain {
-  [Resources.HORMONES]?: EntityGainDetail;
-  [Resources.MATURITY]?: EntityGainDetail;
-  [Resources.CONFIDENCE]?: EntityGainDetail;
-  [Resources.KNOWLEDGE]?: EntityGainDetail;
-}
-
-interface NamedSpriteData extends SpriteData {
-  name: SpriteNames
-}
-
-interface GameEntityParams {
-  name: string;
-  description: string;
-  state: GameEntityState;
-  cooldown_duration?: number;
-  cost?: EntityCost;
-  gain: EntityGain;
-  sprite_data: NamedSpriteData;
-  is_one_time_purchase?: boolean; 
-  onClick?: () => void;
-}
-
-// TODO: Remove name from sprite?
-export const game_entities_data_list: GameEntityParams[] = [
-  {
-    name: "eye",
-    description: "the final evolution",
-    state: GameEntityState.LOCKED,
-    cost: {
-      // [Resources.HORMONES]: 10
-    },
-    gain: {
-      // [Resources.HORMONES]: {
-      //   per_second: 0.5
-      // }
-    },
-    is_one_time_purchase: true,
-    sprite_data: {
-      x: 37,
-      y: 12,
-      w: 18,
-      name: "eye",
-      spritesheet_rect: spritesheet.eye
-    },
-  },
-  {
-    // TODO: Simplify locked vs click
-    name: "pituitary",
-    description: "starts hormone production.",
-    // cooldown_duration: 2000,
-    state: GameEntityState.AVAILABLE,
-    cost: {
-      [Resources.HORMONES]: 10
-    },
-    gain: {
-      [Resources.HORMONES]: {
-        per_second: 0.5
-      }
-    },
-    is_one_time_purchase: true,
-    sprite_data: {
-      x: 40,
-      y: 55,
-      w: 9,
-      name: "pituitary",
-      spritesheet_rect: spritesheet.pituitary
-    },
-  },
-  {
-    // TODO: Simplify locked vs click
-    name: "kidney",
-    description: "starts hormone production.",
-    // cooldown_duration: 2000,
-    state: GameEntityState.LOCKED,
-    cost: {
-      [Resources.HORMONES]: 10
-    },
-    gain: {
-      [Resources.HORMONES]: {
-        per_second: 0.5
-      }
-    },
-    is_one_time_purchase: true,
-    sprite_data: {
-      x: 16,
-      y: 78,
-      w: 15,
-      name: "kidney",
-      spritesheet_rect: spritesheet.kidney
-    },
-  },
-  {
-    name: "brain",
-    description: "The root of all evil",
-    cooldown_duration: 1000,
-    state: GameEntityState.AVAILABLE, 
-    gain: {
-      [Resources.HORMONES]: {
-        quantity: 10
-      }
-    },
-    sprite_data: {
-      x: 34,
-      y: 31,
-      w: 22,
-      name: "brain",
-      spritesheet_rect: spritesheet.brain
-    },
-  },
-  {
-    name: "lungs",
-    description: "Throat organs",
-    cooldown_duration: 1000,
-    state: GameEntityState.LOCKED, 
-    gain: {
-      [Resources.HORMONES]: {
-        quantity: 10
-      }
-    },
-    sprite_data: {
-      x: 34,
-      y: 68,
-      w: 23,
-      name: "lungs",
-      spritesheet_rect: spritesheet.lungs
-    },
-  },
-  {
-    name: "bones",
-    description: "Growth spurt",
-    cooldown_duration: 1000,
-    state: GameEntityState.LOCKED, 
-    gain: {
-      [Resources.HORMONES]: {
-        quantity: 10
-      }
-    },
-    sprite_data: {
-      x: 33,
-      y: 109,
-      w: 24,
-      name: "bone",
-      spritesheet_rect: spritesheet.bone
-    },
-  },
-  {
-    name: "claws",
-    description: "null",
-    cooldown_duration: 2000,
-    state: GameEntityState.LOCKED, 
-    gain: {
-      [Resources.MATURITY]: {
-        per_second: 1
-      }
-    },
-    onClick() {
-      // game_data.hormones.increase_per_second += 0.1;
-    },
-    sprite_data: {
-      x: 14,
-      y: 54,
-      w: 19,
-      mirrored: 18,
-      name: 'claw',
-      spritesheet_rect: spritesheet.claw
-    },
-  },
-  {
-    name: "horns",
-    description: "null",
-    cooldown_duration: 2000,
-    state: GameEntityState.LOCKED, 
-    gain: {
-      [Resources.MATURITY]: {
-        per_second: 1
-      }
-    },
-    onClick() {
-      // game_data.hormones.increase_per_second += 0.1;
-    },
-    sprite_data: {
-      x: 16,
-      y: 10,
-      w: 14,
-      mirrored: 17,
-      name: 'horn',
-      spritesheet_rect: spritesheet.horn,
-    },
-  },
-  {
-    name: "hooves",
-    description: "null",
-    cooldown_duration: 2000,
-    state: GameEntityState.LOCKED, 
-    gain: {
-      [Resources.MATURITY]: {
-        per_second: 1
-      }
-    },
-    sprite_data: {
-      x: 16,
-      y: 120,
-      w: 16,
-      mirrored: 15,
-      name: 'foot',
-      spritesheet_rect: spritesheet.foot,
-    },
-  },
-];
-
+/**
+ * 
+ */
 export class GameEntity extends Sprite {
   name: string;
   description: string;
@@ -306,14 +78,14 @@ export class GameEntity extends Sprite {
     // Redraw the sprite
     temp_ctx.globalCompositeOperation = "source-atop";
     temp_ctx.drawImage(this.canvas, 0, 0);
-    document.body.append(temp_canvas);
+    // document.body.append(temp_canvas);
 
     // 
     // HOVER LAYER
     // 
     replaceColor(temp_canvas, temp_ctx, sprite_border_color, sprite_border_hover_color);
     this.hover_canvas = dupeCanvas(temp_canvas);
-    document.body.append(this.hover_canvas);
+    // document.body.append(this.hover_canvas);
     replaceColor(temp_canvas, temp_ctx, sprite_border_hover_color, sprite_border_color);
     // 
     // 
@@ -328,18 +100,18 @@ export class GameEntity extends Sprite {
     
     // Duplicate canvas to darkgrey
     this.cooldown_canvas = dupeCanvas(temp_canvas);
-    document.body.append(this.cooldown_canvas);
+    // document.body.append(this.cooldown_canvas);
 
     // 
     // LOCKED LAYER
     // 
     // Darken with black
-    temp_ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    temp_ctx.fillStyle = 'rgba(0,0,0,0.7)';
     temp_ctx.fillRect(0, 0, this.w, this.h);
 
     // Duplicate canvas to black
     this.locked_canvas = dupeCanvas(temp_canvas);
-    document.body.append(this.locked_canvas);
+    // document.body.append(this.locked_canvas);
     // 
     // 
     // 
@@ -357,7 +129,7 @@ export class GameEntity extends Sprite {
 
     // Duplicate canvas to white
     this.click_canvas = dupeCanvas(temp_canvas);
-    document.body.append(this.click_canvas);
+    // document.body.append(this.click_canvas);
     replaceColor(temp_canvas, temp_ctx, sprite_border_hover_color, sprite_border_color);
     // 
     // 
@@ -375,6 +147,7 @@ export class GameEntity extends Sprite {
   onUpdate() {
     const now = Date.now();
     const is_hovering = this.hitmask_color === globals.hitmask_active_color;
+    
     // Start hovering
     if(!this.is_hovering && is_hovering) {
       this.hover_start = now;
@@ -386,11 +159,16 @@ export class GameEntity extends Sprite {
       globals.hovering_entity = undefined;
     }
     this.is_hovering = is_hovering;
-    
+    const is_past_tooltip_predelay = (now - this.hover_start) > tooltip_timeout;
+
     // Show tooltip
-    if(is_hovering && (now - this.hover_start) > tooltip_timeout) {
-      globals.active_message = this.name;
-      globals.active_entity = this; 
+    if(is_hovering && this.state !== GameEntityState.LOCKED) {
+      globals.cursor = 'pointer'
+
+      if(is_past_tooltip_predelay) {
+        globals.active_message = this.name;
+        globals.active_entity = this; 
+      }
     }
     
     // For locked entitites

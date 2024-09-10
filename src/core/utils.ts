@@ -93,6 +93,47 @@ export function fillRectWithRandom(
   }
 }
 
+// /**
+//  * 
+//  */
+// export function fillRectWithStalagtites(
+//   ctx: CanvasRenderingContext2D,
+//   x = 0,
+//   y = 0,
+//   w: number, 
+//   h: number, 
+//   hsl: hsl,
+// ) {
+//   const pixel_count_w = Math.ceil(w / pixel_size);
+//   const pixel_count_h = Math.ceil(h / pixel_size);
+//   ctx.fillStyle = `hsl(${hsl[0]}, ${hsl[1]}, ${hsl[2]})`;
+
+//   // If border width, only fill for border
+//   let r = 0;
+//   let c = 0;
+//   let stalagtites = [2, 5, 3, 3];
+//   while(r < pixel_count_h) {
+//     while(c < pixel_count_w) {
+//       c++; 
+//       const should_start_stalagtite = (r === 0 && Math.random() > 0.6);
+//       if(should_start_stalagtite) {
+//         const stalagtite_base_width = Math.round(Math.random() * pixel_count_w);
+
+//       }
+//     }
+//     r++; 
+//     c = 0; 
+//   }
+
+//   for(let r = 0; r <= pixel_count_h; r++) {
+//     for (let c = 0; c <= pixel_count_w; c++) {
+//       if(should_start_stalagtite) {
+//         ctx.fillRect(c * (pixel_size * ) + x, r * pixel_size + y, pixel_size * 1, pixel_size * 1);
+//       } else if(r < 1)
+//     }
+//   }
+// }
+
 // 
 // 
 export function createPattern(
@@ -112,8 +153,8 @@ export function createPattern(
   canvas.style.height = '100px';
 
   // TODO: Delete
-  document.body.append(canvas);
-  canvas.style.background = 'blue';
+  // document.body.append(canvas);
+  // canvas.style.background = 'blue';
 
   // TODO: Combine these two?
   for (let c = 0; c < w; c++) {

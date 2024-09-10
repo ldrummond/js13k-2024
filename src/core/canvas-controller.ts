@@ -7,12 +7,21 @@ import {
   pixel_size,
   hsl_grey,
   hsl_offblack,
-  hsl_red,
+  hsl_darkred,
   hsl_white,
   main_canvas,
   dpr,
   container,
+  twopi,
+  hsl_red,
+  rgb_grey,
+  window_width,
+  window_height,
+  rgb_white,
+  rgb_lightgrey,
+  hsl_lightgrey,
 } from "./constants";
+import { sprite_text } from "./sprite-text";
 import { createPattern, dupeCanvas, fillRectWithRandom, roundToPixel } from "./utils";
 
 /**
@@ -20,6 +29,12 @@ import { createPattern, dupeCanvas, fillRectWithRandom, roundToPixel } from "./u
  */
 export class CanvasController {
   constructor() {
+    const background_texture_canvas = dupeCanvas(main_canvas);
+    background_texture_canvas.width = window_width;
+    background_texture_canvas.height = window_height;
+    document.body.prepend(background_texture_canvas);
+    const background_texture_ctx = background_texture_canvas.getContext("2d")!;
+    fillRectWithRandom(background_texture_ctx, 0, 0, window_width, window_height, hsl_offblack);
     // const pattern = createPattern(undefined, undefined, undefined, undefined, 100, 0, 50, undefined, undefined, undefined);
 
     // const test_canvas = document.createElement("canvas");
@@ -38,47 +53,102 @@ export class CanvasController {
 
     const background_canvas = dupeCanvas(main_canvas);
     const background_ctx = background_canvas.getContext("2d")!;
+    background_ctx.imageSmoothingEnabled = false;
     background_ctx.scale(dpr, dpr);
     container.prepend(background_canvas);
 
     // Draw Background Layer
     fillRectWithRandom(background_ctx, 0, 0, canvas_width, canvas_height, hsl_offblack);
 
-    // Draw Panel Pattern
-    const border_width = Math.round(pixel_size * 2);
-    const pattern_stroke = createPattern(border_width * 2, border_width * 2, hsl_red, 20)
-
     // Draw Panel 1
     const panel1_x = canvas_width * 1 / 24;
     const panel1_y = canvas_height * 1 / 24;
-    const panel1_width = canvas_width * 5 / 24;
+    const panel1_width = canvas_width * 5.5 / 24;
     const panel1_height = canvas_height * 19 / 24;
     fillRectWithRandom(background_ctx, panel1_x, panel1_y, panel1_width, panel1_height, hsl_grey, 6);
     fillRectWithRandom(background_ctx, panel1_x, panel1_y, panel1_width, panel1_height, hsl_grey, 20, 2);
 
+    
     // Draw Panel 2
+    const panel_border_inset = 3 * pixel_size;
+    // 
+    // 
+    const panel2_border_x = canvas_width * 14 / 24 + panel_border_inset;
+    const panel2_border_y = canvas_height * 5 / 24 + panel_border_inset; 
+    const panel2_border_width = canvas_width * 9 / 24 - panel_border_inset * 2;
+    const panel2_border_height = canvas_height * 7 / 24 - panel_border_inset * 2;
+
     const panel2_x = canvas_width * 14 / 24;
     const panel2_y = canvas_height * 5 / 24; 
     const panel2_width = canvas_width * 9 / 24;
     const panel2_height = canvas_height * 7 / 24;
+
     fillRectWithRandom(background_ctx, panel2_x, panel2_y, panel2_width, panel2_height, hsl_grey, 5);
+    fillRectWithRandom(background_ctx, panel2_border_x, panel2_border_y, panel2_border_width, panel2_border_height, hsl_lightgrey, 20, 2);
 
     // Draw Panel 3
+    const panel3_border_x = canvas_width * 14 / 24 + panel_border_inset;
+    const panel3_border_y = canvas_height * 13 / 24 + panel_border_inset;
+    const panel3_border_width = canvas_width * 9 / 24 - panel_border_inset * 2;
+    const panel3_border_height = canvas_height * 7 / 24 - panel_border_inset * 2;
+    
     const panel3_x = canvas_width * 14 / 24;
-    const panel3_y = canvas_height * 13 / 24; 
+    const panel3_y = canvas_height * 13 / 24;
     const panel3_width = canvas_width * 9 / 24;
     const panel3_height = canvas_height * 7 / 24;
+    
     fillRectWithRandom(background_ctx, panel3_x, panel3_y, panel3_width, panel3_height, hsl_grey, 5);
+    fillRectWithRandom(background_ctx, panel3_border_x, panel3_border_y, panel3_border_width, panel3_border_height, hsl_lightgrey, 20, 2);
+    sprite_text.fillText(background_ctx, "The Library", panel3_x * 1.05 / pixel_size, (panel3_y + panel3_height) * .9 / pixel_size, 5, 0.8, rgb_lightgrey);
+    
+    // Draw minion
+    const minion_x = canvas_width * 14 / 24;
+    const minion_y = canvas_height * 1 / 24; 
+    const minion_width = canvas_width * 9 / 24;
+    const minion_height = canvas_height * 2 / 24;
+    fillRectWithRandom(background_ctx, minion_x, minion_y, minion_width, minion_height, hsl_grey, 5);
 
     // Draw Character
-    // const char_x = canvas_width * 6.5 / 24;
-    // const char_y = canvas_height * 1 / 24;
-    // const char_width = canvas_width * 7 / 24;
-    // const char_height = canvas_height * 19 / 24;
-    // background_ctx.fillStyle = 'grey';
-    // background_ctx.fillRect(char_x, char_y, char_width * pixel_size, char_height * pixel_size);
+    const char_x = canvas_width * 7 / 24;
+    const char_y = canvas_height * 1 / 24;
+    const char_width = canvas_width * 6.5 / 24;
+    const char_height = canvas_height * 19 / 24;
+    const char_border_inset = 4 * pixel_size;
+    fillRectWithRandom(background_ctx, char_x + char_border_inset, char_y + char_border_inset, char_width - char_border_inset * 2, char_height - char_border_inset * 2, hsl_darkred, 15);
+    fillRectWithRandom(background_ctx, char_x, char_y, char_width, char_height, hsl_grey, 5, 5);
+
+    // Draw stalagtites
+    // const temp_canvas = dupeCanvas(main_canvas);
+    // const temp_ctx = temp_canvas.getContext("2d")!;
+    // temp_canvas.width = 100;
+    // temp_canvas.height = 20;
+    // document.body.append(temp_canvas);
+    // temp_canvas.style.position = 'absolute';
+    // fillRectWithRandom(temp_ctx, 0, 0, 100, 20, hsl_darkred, 15);
+    // let x = 0;
+    // const y = temp_canvas.height;
+    // temp_ctx.moveTo(x, y);
+    // temp_ctx.beginPath(); 
+    // temp_ctx.lineTo(temp_canvas.width, 0);
+    // while(x < temp_canvas.width) {
+    //   if(Math.random() > 0.9) {
+    //     const rad_h = Math.random() * temp_canvas.height / 2;
+    //     const rad_w = rad_h * 0.3;
+    //     temp_ctx.lineTo(x, y);
+    //     temp_ctx.lineTo(x + (rad_w / 2), y - (rad_h / 2));
+    //     temp_ctx.lineTo(x + rad_w, y);
+    //     x += rad_w * 2;
+    //   }
+    //   x++;
+    // }
+    // temp_ctx.strokeStyle = 'black';
+    // temp_ctx.lineWidth = 10;
+    // temp_ctx.fillStyle = 'black';
+    // temp_ctx.stroke();
+    // temp_ctx.fill();
 
     // Draw UI
+
 
   }
 

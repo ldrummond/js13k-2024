@@ -1,6 +1,6 @@
 import { dpr, globals, main_canvas, hitmask_canvas, container } from "./constants";
 
-const hitmask_ctx = hitmask_canvas.getContext('2d')!;
+const hitmask_ctx = hitmask_canvas.getContext('2d', {willReadFrequently: true})!;
 hitmask_ctx.scale(dpr, dpr);
 hitmask_ctx.imageSmoothingEnabled = false;
 

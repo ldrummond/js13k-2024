@@ -13,20 +13,28 @@ export enum Resources {
 }
 
 // Colors
+// TODO: HSL or RGB, probably RBG
 export const hsl_offblack: hsl = [0,0,1];
 export const hsl_grey: hsl = [0, 0, 10];
 export const hsl_white: hsl = [0, 0, 20];
 export const hsl_red: hsl = [9,70,20];
+export const hsl_darkred: hsl = [8,65,15];
+export const hsl_lightgrey: rgb = [0,0,20];
 
+export const rgb_lightgrey: rgb = [50,50,50];
+export const rgb_grey: rgb = [26,26,26];
+export const rgb_offblack: rgb = [3,3,3];
 export const rgb_white: rgb = [255,255,255];
-export const rgb_gold: rgb = [207,176,75];
+export const rgb_gold: rgb = [155,132,2];
 export const rgb_brown: rgb = [93,52,52];
 
 export const sprite_border_color: rgb = rgb_brown;
 export const sprite_border_hover_color: rgb = [140,49,67];
 
-
 // Constants
+export const fps = 50;
+export const interval = 1000 / fps; 
+export const twopi = 6.283;
 export const click_offset = 2;
 export const click_duration = 160;
 export const tooltip_timeout = 222;
@@ -40,6 +48,8 @@ export const main_ctx = main_canvas.getContext("2d")!;
 export var canvas_rect = main_canvas.getBoundingClientRect();
 export const canvas_width = canvas_rect.width;
 export const canvas_height = canvas_rect.height;
+export const window_width = window.innerWidth;
+export const window_height = window.innerHeight;
 
 // Scale canvas properly
 main_canvas.width = canvas_width * dpr;
@@ -65,6 +75,9 @@ interface Globals {
   hovering_entity?: GameEntity;
   active_entity?: GameEntity;
   mousepos: Point;
+  volume: number;
+  cursor: CSSStyleDeclaration['cursor'];
+  elapsed: number;
 }
 
 export const globals: Globals = {
@@ -72,8 +85,11 @@ export const globals: Globals = {
   hitmask_active_color: '',
   active_message: '',
   active_entity: undefined,
-  mousepos: { x: 0, y: 0} as Point
-}
+  mousepos: { x: 0, y: 0} as Point,
+  volume: 1,
+  cursor: "default",
+  elapsed: 0
+};
 
 export const hormones: ResourceDetails = {
   name: "hormones",

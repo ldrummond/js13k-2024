@@ -1,17 +1,15 @@
-import { canvas_height, canvas_width, container, globals, main_canvas, main_ctx, resource_list, spritesheet_img } from './core/constants';
+import { canvas_height, canvas_width, container, fps, globals, interval, main_canvas, main_ctx, resource_list, spritesheet_img } from './core/constants';
 import DebugPanel from './debug';
 import { GameLogic } from './core/game-logic';
-import { game_entities_data_list, GameEntity } from './core/game-entity';
+import { GameEntity } from './core/game-entity';
 import { UIText } from './core/ui-text';
-import Sprite, { canvasFromSpritesheet, sprite_data_list } from './core/sprite';
+import Sprite, { canvasFromSpritesheet } from './core/sprite';
 import { hitmaskUpdate } from './core/hitmask';
 import { CanvasController } from './core/canvas-controller';
 import { sprite_text } from './core/sprite-text';
-
-let previousTime = 0;
-const fps = 20;
-const interval = 1000 / fps; 
-
+import { startBackgroundMusic } from './core/game-audio';
+import { game_entities_data_list } from './data/game-entities';
+import { sprite_data_list } from './data/sprites';
 
 // Load Main Spritesheet
 spritesheet_img.onload = start;
@@ -19,6 +17,15 @@ spritesheet_img.src = "spritesheet.png";
 
 // Load Sprites
 function start() {
+  // VOLUME Controls
+  const mute_button = document.getElementById("mute");
+  mute_button?.addEventListener("click", () => {
+    globals.volume = 1 - globals.volume;
+  });
+
+  document.getElementById("start")!.addEventListener("click", startBackgroundMusic)
+
+
   // Overwrite text
   // CanvasRenderingContext2D.prototype.fillText = function(args) {
   //   const [text, x, y] = args;
@@ -30,23 +37,18 @@ function start() {
   // SETUP Controllers
   sprite_text.init();
   const canvas_controller = new CanvasController();
-  const debug_panel = new DebugPanel(); 
+  // const debug_panel = new DebugPanel(); 
   const game_logic = new GameLogic();
   const ui_text = new UIText();
   // TODO: Combine entities?
   const sprites: Sprite[] = sprite_data_list.map(d => new Sprite(d));
   const game_entities: GameEntity[] = game_entities_data_list.map(d => new GameEntity(d));
 
-  // Test text
-  
   
   // Add custom cursor
   // const buttons_frame = spritesheet_json.frames.find((frame: SpritesheetFrame) => frame.filename === "cursor.aseprite").frame;
   // const cursor_canvas = canvasFromSpritesheet(buttons_frame, 48, 48);
   // document.body.style.cursor = `url(${cursor_canvas.toDataURL()}), none`;
-
-  // Add text
-
 
   // 
   // Mouse Listeners
@@ -61,17 +63,22 @@ function start() {
     ?.onClick();
   });
   
+  
   // 
   // Render Loop
   // 
+  let previousTime = 0;
+  // 
   (function draw(currentTime: number) {
     const delta = currentTime - previousTime;
+    globals.elapsed += delta;
 
     if (delta >= interval) {
       previousTime = currentTime - (delta % interval);
 
       // CURSOR
-      document.body.style.cursor = 'undefined';
+      document.body.style.cursor = globals.cursor;
+      globals.cursor = 'default';
 
       // 
       // CLEAR CANVAS
@@ -113,7 +120,7 @@ function start() {
       // slow for anyone with a different refresh rate than you.
       // gameStateMachine.getState().onUpdate(delta);
 
-      debug_panel.onUpdate();
+      // debug_panel.onUpdate();
       // spriteController.render(main_ctx);
     }
 

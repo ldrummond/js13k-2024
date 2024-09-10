@@ -34,6 +34,14 @@ export class UIText {
 
   // 
   onUpdate() {
+    // resource_list.map((resource, i) => {
+    //   const resource_el = container.querySelector('.' + resource.name)!;
+    //   const quantity_el = resource_el.querySelector(".quantity")!;
+    //   const per_second_el = resource_el.querySelector(".per_second")!;
+    //   // quantity_el.textContent = Math.floor(resource.quantity) + '/' + resource.limit;
+    //   per_second_el.textContent = '+' + Math.floor(resource.increase_per_second * 10) / 10 + 's';
+    // })
+
     // Update message
     const active_entity = globals.active_entity;
     this.text_box.innerHTML = '';
@@ -55,16 +63,15 @@ export class UIText {
   // 
   render(ctx: CanvasRenderingContext2D) {
     resource_list.map((resource, i) => {
-      const resource_el = container.querySelector('.' + resource.name)!;
-      const quantity_el = resource_el.querySelector(".quantity")!;
-      const per_second_el = resource_el.querySelector(".per_second")!;
       const resource_quantity = Math.floor(resource.quantity) + '/' + resource.limit;
-      const resource_ps = '+' + Math.floor(resource.increase_per_second * 10) / 10 + 's';
+      const resource_ps = '+' + Math.floor(resource.increase_per_second * 10) / 10;
 
-      const x = (43 + i * 67) * pixel_size;
-      const y = 149.5 * pixel_size;
-      sprite_text.fillText(ctx, resource_quantity, x, y, 4, 0.25, rgb_gold); 
-      sprite_text.fillText(ctx, resource_ps, x * 1.2, y, 3, 0.1, rgb_gold); 
+      let x = (40 + i * 72);
+      const y = 151.5;
+      // Offset by width
+      x += sprite_text.fillText(ctx, resource_quantity, x, y, 4, 0.25, rgb_gold) / pixel_size;
+      x += sprite_text.fillText(ctx, resource_ps, x + 3, y + 2.5, 2.5, 0.5, rgb_gold) / pixel_size; 
+      sprite_text.fillText(ctx, '/s', x + 3, y + 3.6, 1.7, 0.5, rgb_gold); 
     })
   }
 }
