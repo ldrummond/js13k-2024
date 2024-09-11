@@ -77,16 +77,16 @@ function asespritePlugin(): Plugin {
     async configResolved(_config) {
       config = _config;
     },
-    handleHotUpdate({ file, server }) {
-      if (file.endsWith('.ase') || file.endsWith('.aseprite')) {
-        console.log('Sprite file updated. Reloading')
-        server.ws.send({
-          type: 'full-reload',          
-          path: '*'
-        });
-        return [];
-      }
-    },
+    // handleHotUpdate({ file, server }) {
+    //   if (file.endsWith('.ase') || file.endsWith('.aseprite')) {
+    //     console.log('Sprite file updated. Reloading')
+    //     server.ws.send({
+    //       type: 'full-reload',          
+    //       path: '*'
+    //     });
+    //     return [];
+    //   }
+    // },
     async buildStart() {
       const source_dir = path.resolve(config.root, "src/assets/sprites/");
       const source_glob = source_dir + '/**';

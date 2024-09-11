@@ -1,27 +1,72 @@
-import { click_duration, click_offset, confidence, createResourceTooltip, globals, hormones, knowledge, maturity, resource_map, Resources, sprite_border_color, sprite_border_hover_color, spritesheet_img, tooltip_timeout } from "./constants";
+import { click_duration, click_offset, confidence, createResourceTooltip, globals, hormones, knowledge, maturity, resource_map, Resources, sprite_border_color, sprite_border_hover_color, tooltip_timeout } from "./constants";
 import Sprite from "./sprite";
-import { dupeCanvas, ranRGB, replaceColor } from "./utils";
+import { debugLog, dupeCanvas, ranRGB, replaceColor } from "./utils";
 import { addToHitmask } from "./hitmask";
-import { SpriteNames, spritesheet } from "@/spritesheet";
-import { GameEntityState, EntityCost, EntityGain, GameEntityParams, EntityGainDetail } from "@/data/game-entities";
+
+export enum GameEntityState {
+  "LOCKED",
+  "AVAILABLE",
+  "FLASHING",
+  "HOVERING",
+  "CLICKING",
+  "COOLDOWN"
+}
+
+export interface EntityCost {
+  [Resources.HORMONES]?: number;
+  [Resources.MATURITY]?: number;
+  [Resources.CONFIDENCE]?: number;
+  [Resources.KNOWLEDGE]?: number;
+}
+
+export interface EntityGainDetail {
+  quantity?: number;
+  per_second?: number;
+}
+
+export interface EntityGain {
+  [Resources.HORMONES]?: EntityGainDetail;
+  [Resources.MATURITY]?: EntityGainDetail;
+  [Resources.CONFIDENCE]?: EntityGainDetail;
+  [Resources.KNOWLEDGE]?: EntityGainDetail;
+}
+
+export interface GameEntityParams {
+  name?: string;
+  description?: string;
+  state: GameEntityState;
+  cooldown_duration?: number;
+  cost?: EntityCost;
+  gain?: EntityGain;
+  sprite_data: SpriteData;
+  is_one_time_purchase?: boolean; 
+  onClick?: () => void;
+  hidden?: boolean;
+}
+
+interface InteractiveCanvases {
+  main_canvas: HTMLCanvasElement;
+  hover_canvas: HTMLCanvasElement;
+  cooldown_canvas: HTMLCanvasElement;
+  locked_canvas: HTMLCanvasElement;
+  click_canvas: HTMLCanvasElement; 
+}
 
 /**
  * 
  */
 export class GameEntity extends Sprite {
-  name: string;
-  description: string;
+  name?: string;
+  description?: string;
   state: GameEntityState;
   cooldown_duration?: number;
   cost?: EntityCost;
-  gain: EntityGain;
+  gain?: EntityGain;
   sprite_data: SpriteData;
   sprite?: Sprite;
   hitmask_color: string;
-  hover_canvas: HTMLCanvasElement;
-  cooldown_canvas: HTMLCanvasElement;
-  locked_canvas: HTMLCanvasElement;
-  click_canvas: HTMLCanvasElement; 
+  sprite_frames_interactive_canvases: InteractiveCanvases[] = [];
+  active_interactive_canvases: InteractiveCanvases;
   _onClick?: () => void;
   elapsed_cooldown_percent: number = 0;
   hover_start: number = 0;
@@ -31,10 +76,10 @@ export class GameEntity extends Sprite {
   is_hovering = false;
   is_clicking = false;
   on_cooldown = false;
+  hidden: boolean;
 
   constructor(opts: GameEntityParams) {
-    const { name, description, cooldown_duration, state, cost, gain, is_one_time_purchase, onClick, sprite_data } = opts;
-    const { spritesheet_rect } = sprite_data;
+    const { name, description, cooldown_duration, state, cost, gain, is_one_time_purchase, onClick, sprite_data, hidden = false } = opts;
 
     // Init sprite
     super(sprite_data);
@@ -50,95 +95,100 @@ export class GameEntity extends Sprite {
     this._onClick = onClick;
     this.sprite_data = sprite_data;
     this.hitmask_color = ranRGB();
+    this.hidden = hidden;
 
-    const temp_canvas = dupeCanvas(this.canvas);
-    const temp_ctx = temp_canvas.getContext("2d")!;
+    this.preRenderCanvases();
+    this.active_interactive_canvases = this.sprite_frames_interactive_canvases[0];
+  }
 
-    // Add additional canvases for hover, hitmask, etc.
-    // TODO: Save restore magic, simplify all this
-    // 
+  /**
+   * 
+   */
+  preRenderCanvases() {
+    this.sprite_frame_canvases.map(canvas => {
+      const [temp_canvas, temp_ctx] = dupeCanvas(canvas);
+      
+      const interactive_canvases: any = {};
+      interactive_canvases.main_canvas = canvas;
 
-    // 
-    // HITMASK LAYER
-    // 
-    // Fill with entity hitmask color
-    temp_ctx.globalCompositeOperation = "source-over";
-    temp_ctx.fillStyle = this.hitmask_color;
-    temp_ctx.fillRect(0, 0, this.w, this.h);
+      // Add additional canvases for hover, hitmask, etc.
+      // TODO: Save restore magic, simplify all this
+      // 
 
-    // Mask out the sprite
-    temp_ctx.globalCompositeOperation = "destination-in";
-    temp_ctx.drawImage(this.canvas, 0, 0);
+      // 
+      // HITMASK LAYER
+      // Fill with entity hitmask color
+      temp_ctx.globalCompositeOperation = "source-over";
+      temp_ctx.fillStyle = this.hitmask_color;
+      temp_ctx.fillRect(0, 0, this.w, this.h);
 
-    // Send to hitmask
-    addToHitmask(temp_canvas, this.x, this.y, this.w, this.h);
-    // 
-    // 
+      // Mask out the sprite
+      temp_ctx.globalCompositeOperation = "destination-in";
+      debugLog(canvas);
+      temp_ctx.drawImage(canvas, 0, 0);
 
-    // Redraw the sprite
-    temp_ctx.globalCompositeOperation = "source-atop";
-    temp_ctx.drawImage(this.canvas, 0, 0);
-    // document.body.append(temp_canvas);
+      // Send to hitmask
+      addToHitmask(temp_canvas, this.x, this.y, this.w, this.h);
+      // 
+      // 
 
-    // 
-    // HOVER LAYER
-    // 
-    replaceColor(temp_canvas, temp_ctx, sprite_border_color, sprite_border_hover_color);
-    this.hover_canvas = dupeCanvas(temp_canvas);
-    // document.body.append(this.hover_canvas);
-    replaceColor(temp_canvas, temp_ctx, sprite_border_hover_color, sprite_border_color);
-    // 
-    // 
-    // 
+      // Redraw the sprite
+      temp_ctx.globalCompositeOperation = "source-atop";
+      temp_ctx.drawImage(canvas, 0, 0);
 
-    // 
-    // COOLDOWN LAYER
-    // 
-    // Darken with darkgrey
-    temp_ctx.fillStyle = 'rgba(0,0,0,0.5)';
-    temp_ctx.fillRect(0, 0, this.w, this.h);
-    
-    // Duplicate canvas to darkgrey
-    this.cooldown_canvas = dupeCanvas(temp_canvas);
-    // document.body.append(this.cooldown_canvas);
+      // 
+      // HOVER LAYER
+      // 
+      replaceColor(temp_canvas, temp_ctx, sprite_border_color, sprite_border_hover_color);
+      interactive_canvases.hover_canvas = dupeCanvas(temp_canvas)[0];
+      replaceColor(temp_canvas, temp_ctx, sprite_border_hover_color, sprite_border_color);
+      // 
 
-    // 
-    // LOCKED LAYER
-    // 
-    // Darken with black
-    temp_ctx.fillStyle = 'rgba(0,0,0,0.7)';
-    temp_ctx.fillRect(0, 0, this.w, this.h);
+      // 
+      // COOLDOWN LAYER
+      // 
+      // Darken with darkgrey
+      temp_ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      temp_ctx.fillRect(0, 0, this.w, this.h);
+      
+      // Duplicate canvas to darkgrey
+      interactive_canvases.cooldown_canvas = dupeCanvas(temp_canvas)[0];
 
-    // Duplicate canvas to black
-    this.locked_canvas = dupeCanvas(temp_canvas);
-    // document.body.append(this.locked_canvas);
-    // 
-    // 
-    // 
+      // 
+      // LOCKED LAYER
+      // 
+      // Darken with black
+      temp_ctx.fillStyle = 'rgba(0,0,0,0.7)';
+      temp_ctx.fillRect(0, 0, this.w, this.h);
 
-    // Redraw the sprite
-    temp_ctx.drawImage(this.canvas, 0, 0);
+      // Duplicate canvas to black
+      interactive_canvases.locked_canvas = dupeCanvas(temp_canvas)[0];
+      // 
 
-    // 
-    // CLICK LAYER
-    // 
-    // Lighten with white
-    replaceColor(temp_canvas, temp_ctx, sprite_border_color, sprite_border_hover_color);
-    temp_ctx.fillStyle = 'rgba(255,200,200,0.6)';
-    temp_ctx.fillRect(0, 0, this.w, this.h);
+      // Redraw the sprite
+      temp_ctx.drawImage(canvas, 0, 0);
 
-    // Duplicate canvas to white
-    this.click_canvas = dupeCanvas(temp_canvas);
-    // document.body.append(this.click_canvas);
-    replaceColor(temp_canvas, temp_ctx, sprite_border_hover_color, sprite_border_color);
-    // 
-    // 
-    // 
+      // 
+      // CLICK LAYER
+      // 
+      // Lighten with white
+      replaceColor(temp_canvas, temp_ctx, sprite_border_color, sprite_border_hover_color);
+      temp_ctx.fillStyle = 'rgba(255,200,200,0.6)';
+      temp_ctx.fillRect(0, 0, this.w, this.h);
 
-    // Redraw the sprite
-    temp_ctx.clearRect(0,0, this.w, this.h);
-    temp_ctx.globalCompositeOperation = "source-over";
-    temp_ctx.drawImage(this.canvas, 0, 0);
+      // Duplicate canvas to white
+      interactive_canvases.click_canvas = dupeCanvas(temp_canvas)[0];
+      replaceColor(temp_canvas, temp_ctx, sprite_border_hover_color, sprite_border_color);
+      // 
+
+      // Redraw the sprite
+      temp_ctx.clearRect(0,0, this.w, this.h);
+      temp_ctx.globalCompositeOperation = "source-over";
+      temp_ctx.drawImage(canvas, 0, 0);
+
+      // Add canvases
+      this.sprite_frames_interactive_canvases.push(interactive_canvases as InteractiveCanvases);
+    });
   }
 
   /**
@@ -163,9 +213,9 @@ export class GameEntity extends Sprite {
 
     // Show tooltip
     if(is_hovering && this.state !== GameEntityState.LOCKED) {
-      globals.cursor = 'pointer'
+      globals.cursor = 'pointer';
 
-      if(is_past_tooltip_predelay) {
+      if(is_past_tooltip_predelay && this.name) {
         globals.active_message = this.name;
         globals.active_entity = this; 
       }
@@ -199,19 +249,23 @@ export class GameEntity extends Sprite {
     if(this.is_clicking || (this.is_one_time_purchase && this.last_clicked)) return; 
 
     if(this.state === GameEntityState.AVAILABLE) {
-      this.last_clicked = Date.now();
       this.is_clicking = true; 
-      this.state = GameEntityState.COOLDOWN;
+
+      // Add cooldown
+      if(this.cooldown_duration) {
+        this.last_clicked = Date.now();
+        this.state = GameEntityState.COOLDOWN;
+      }
 
       // Animate gain
       // TODO: Change resource map to resource list 
       // Or add function getResourceByResource
-      Object.entries(this.gain).map(entry => {
+      this.gain && Object.entries(this.gain).map(entry => {
         const [resource, resource_gain_details] = entry as unknown as [Resources, EntityGainDetail];
         resource_map[resource].quantity += resource_gain_details.quantity || 0;
         resource_map[resource].increase_per_second += resource_gain_details.per_second || 0;
         createResourceTooltip(resource, this.x + (this.w / 2), this.y);
-      })
+      });
       
       if(this._onClick) this._onClick();
 
@@ -222,35 +276,37 @@ export class GameEntity extends Sprite {
   }
 
   // TODO: Use global main_ctx
-  render(main_ctx: CanvasRenderingContext2D) {
-    let canvas_to_render = this.canvas;
+  render(ctx: CanvasRenderingContext2D) {
+    if(this.hidden) return; 
+    let canvas_to_render = this.active_interactive_canvases.main_canvas;
     let y = this.y;
     let h = this.h;
-    let cw = this.canvas.width;
-    let ch = this.canvas.height;
+    let cw = canvas_to_render.width;
+    let ch = canvas_to_render.height;
 
     // Decide what to render
     if(this.state === GameEntityState.LOCKED) {
-      canvas_to_render = this.locked_canvas;
+      canvas_to_render = this.active_interactive_canvases.locked_canvas;
     }
     else if(this.is_too_expensive) {
-      canvas_to_render = this.cooldown_canvas;
+      canvas_to_render = this.active_interactive_canvases.cooldown_canvas;
     }
     else if(this.is_clicking) {
       y += click_offset;
-      canvas_to_render = this.click_canvas;
+      canvas_to_render = this.active_interactive_canvases.click_canvas;
     }
     else if(this.last_clicked && this.cooldown_duration && this.state === GameEntityState.COOLDOWN) {
-      main_ctx.drawImage(this.cooldown_canvas, this.x, y, this.w, h);
+      ctx.drawImage(this.active_interactive_canvases.cooldown_canvas, this.x, y, this.w, h);
 
       const cooldown_anim_percent = Math.min((Date.now() - this.last_clicked  - click_duration) / (this.cooldown_duration - click_duration), 1);    
       ch *= cooldown_anim_percent;
       h *= cooldown_anim_percent;
     }
     else if(this.is_hovering || (this.is_one_time_purchase && this.last_clicked)) {
-      canvas_to_render = this.hover_canvas;
+      canvas_to_render = this.active_interactive_canvases.hover_canvas;
     }
 
-    main_ctx.drawImage(canvas_to_render, 0, 0, cw, ch, this.x, y, this.w, h);
+    debugLog(canvas_to_render);
+    ctx.drawImage(canvas_to_render, 0, 0, cw, ch, this.x, y, this.w, h);
   }
 }

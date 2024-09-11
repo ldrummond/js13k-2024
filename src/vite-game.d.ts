@@ -35,4 +35,5 @@ interface SpriteData {
   w: number;
   mirrored?: number;
   spritesheet_rect: Rect[];
+  frame_duration?: number;
 }

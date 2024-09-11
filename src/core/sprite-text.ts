@@ -1,7 +1,7 @@
 import { spritesheet } from "@/spritesheet";
 import { canvasFromSpritesheet } from "./sprite";
-import { pixel_size, rgb_white, spritesheet_img } from "./constants";
-import { dupeCanvas, replaceColor } from "./utils";
+import { pixel_size, rgb_white } from "./constants";
+import { debugLog, dupeCanvas, replaceColor } from "./utils";
 
 /**
  * Char Codes
@@ -26,11 +26,11 @@ import { dupeCanvas, replaceColor } from "./utils";
  * 
  */
 function offsetCharCode(code: number): number {
-  if(code == 43) code = 11; // +
-  if(code == 33) code = 12; // !
-  if(code == 63) code = 13; // ?
-  if(code > 46 && code < 58) code -= 47; // /,0-9,
-  if(code > 64 && code < 91) code -= 51; // ?, A-Z
+  if(code == 43) code = 0; // +
+  if(code == 33) code = 1; // !
+  if(code == 63) code = 2; // ?
+  if(code > 45 && code < 58) code -= 17; // .,/,0-9,
+  if(code > 64 && code < 91) code -= 62; // ?, A-Z
   return code; 
 }
 
@@ -38,6 +38,7 @@ function offsetCharCode(code: number): number {
 // const char_height = 5;
 const char_width = 5;
 const char_height = 7;
+let init = false; 
 
 //
 class SpriteText {
@@ -46,22 +47,28 @@ class SpriteText {
   color_canvases: {[key: string]: HTMLCanvasElement} = {};
 
   init() {
-    const {canvas: spritesheet_text_canvas, ctx: spritesheet_text_ctx} = canvasFromSpritesheet(spritesheet["text-alt"]);
+    const [spritesheet_text_canvas, spritesheet_text_ctx] = canvasFromSpritesheet(spritesheet.textAlt);
     this.spritesheet_text_canvas = spritesheet_text_canvas;
     this.spritesheet_text_ctx = spritesheet_text_ctx;
   }
 
-  getColorCanvas(color: rgb): HTMLCanvasElement {
-    const color_key = color.toString();
-    if(this.color_canvases[color_key]) return this.color_canvases[color_key];
-    const color_canvas = dupeCanvas(this.spritesheet_text_canvas!);
-    const color_ctx = color_canvas.getContext("2d")!;
-    replaceColor(color_canvas!, color_ctx, rgb_white, color);
-    this.color_canvases[color_key] = color_canvas;
-    return color_canvas
-  }
-
+  /**
+   * 
+   * @param ctx 
+   * @param text 
+   * @param x 
+   * @param y 
+   * @param size 
+   * @param char_space 
+   * @param color 
+   * @returns 
+   */
   fillText(ctx: CanvasRenderingContext2D, text: string, x: number = 0, y: number = 0, size: number = 10, char_space: number = 0.3, color?: rgb): number {
+    if(!init) {
+      this.init(); 
+      init = true;
+    }
+    
     text = text.toUpperCase();
     x *= pixel_size;
     y *= pixel_size;
@@ -69,7 +76,7 @@ class SpriteText {
     const space = char_space * size; 
     
     // Allow for recoloring text
-    let canvas = this.spritesheet_text_canvas;
+    let canvas = this.spritesheet_text_canvas!;
     if(color) canvas = this.getColorCanvas(color);
 
     let offset = 0; 
@@ -82,9 +89,9 @@ class SpriteText {
         return;
       }
       
-      // Tighten up ? and ! marks
-      if(code == 33) {
-        offset -= (space * 0.7);
+      // Tighten up ! and . marks
+      if(code == 33 || code == 46) {
+        offset -= (space * 0.8);
       }
 
       // 0 index characters to align with spritesheet
@@ -100,6 +107,7 @@ class SpriteText {
       const dest_w = size;
       const dest_h = size * char_height / char_width;
 
+      debugLog(canvas);
       ctx.drawImage(canvas!, 
         source_x, 
         source_y, 
@@ -116,6 +124,20 @@ class SpriteText {
     });
 
     return offset;
+  }
+
+  /**
+   * 
+   * @param color 
+   * @returns 
+   */
+  getColorCanvas(color: rgb): HTMLCanvasElement {
+    const color_key = color.toString();
+    if(this.color_canvases[color_key]) return this.color_canvases[color_key];
+    const [color_canvas, color_ctx] = dupeCanvas(this.spritesheet_text_canvas!);
+    replaceColor(color_canvas!, color_ctx, rgb_white, color);
+    this.color_canvases[color_key] = color_canvas;
+    return color_canvas;
   }
 }
 

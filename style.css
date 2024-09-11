@@ -5,7 +5,7 @@
 :root {
     --c-darkgrey: #111;
     --c-gold: rgb(155, 132, 2);
-    --c-black: rgb(34, 0, 3);
+    --c-black: rgb(5, 0, 0);
     --c-red: #832323;
     --c-darkred: #5d3434;
 }
@@ -14,10 +14,38 @@
     box-sizing: border-box;
 }
 
-#start {
+html {
+    overflow: hidden;
+}
+
+.fill {
     position: absolute;
-    z-index: 10;
+    width: 100%;
+    height: 100%;
+    top: 0;
     left: 0;
+}
+
+.centered {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+}
+
+#loading-canvas {
+    background: var(--c-black);
+}
+
+#start {
+    outline: none;
+    border: 0.1rem solid var(--c-gold); 
+    background-color: var(--c-darkgrey);
+    color: var(--c-gold);
+    padding: 1rem 2rem;
+    letter-spacing: 0.1rem;
+    z-index: 10;
+    cursor: pointer;
 }
 
 #mute {
@@ -39,14 +67,13 @@ canvas {
 
 #container {
     position: absolute;
-    width: min(100vw, calc(100vh * 16/9));
-    height: min(100vh, calc(100vw * 9/16));
     top: 50%;
     left: 50%;
     translate: -50% -50%;
     box-sizing: border-box;
 }
 
+/* 
 #container::after {
     content: "";
     position: absolute;
@@ -57,7 +84,7 @@ canvas {
     background: linear-gradient(var(--c-black), var(--c-darkred));
     opacity: 0.5;
     mix-blend-mode: darken;
-}
+} */
 
 #container canvas {
     position: absolute;
@@ -67,7 +94,7 @@ canvas {
 
 #text {
     position: absolute;
-    top: 1.7rem;
+    top: 1.4rem;
     right: 2.8rem;
     width: 22rem;
     height: 6rem;
@@ -125,7 +152,7 @@ svg {
 
 #footer {
     position: absolute;
-    bottom: 1.5rem;
+    bottom: 2rem;
     width: 69rem;
     margin-left: 5rem;
     display: flex;
@@ -139,12 +166,13 @@ svg {
     font-size: 1.5rem;
     display: flex;
     align-items: center;
+    display: none;
 }
 
 #footer .icon {
     position: relative;
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 2.6rem;
+    height: 2.6rem;
     padding: 0.5rem;
 }
 

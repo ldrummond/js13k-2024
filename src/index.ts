@@ -1,154 +1,140 @@
-import { canvas_height, canvas_width, container, fps, globals, interval, main_canvas, main_ctx, resource_list, spritesheet_img } from './core/constants';
-import DebugPanel from './debug';
+import { container_height, container_width, globals, interval, loading_canvas, loading_ctx, main_ctx, spritesheet_img } from './core/constants';
 import { GameLogic } from './core/game-logic';
 import { GameEntity } from './core/game-entity';
 import { UIText } from './core/ui-text';
-import Sprite, { canvasFromSpritesheet } from './core/sprite';
+import Sprite from './core/sprite';
 import { hitmaskUpdate } from './core/hitmask';
 import { CanvasController } from './core/canvas-controller';
-import { sprite_text } from './core/sprite-text';
-import { startBackgroundMusic } from './core/game-audio';
 import { game_entities_data_list } from './data/game-entities';
 import { sprite_data_list } from './data/sprites';
+import { Animator } from './core/animator';
 
 // Load Main Spritesheet
-spritesheet_img.onload = start;
-spritesheet_img.src = "spritesheet.png";
+spritesheet_img.onload = spritesheetLoaded;
+const skip_loading = true; 
 
-// Load Sprites
-function start() {
-  // VOLUME Controls
-  const mute_button = document.getElementById("mute");
-  mute_button?.addEventListener("click", () => {
-    globals.volume = 1 - globals.volume;
-  });
+/**
+ * Load spritesheet first
+ */
+function spritesheetLoaded() {
+  // Add Loading Text
+  // sprite_text.fillText(loading_ctx, 'start puberty', window_width / 2, window_height / 2 - 30, 2, undefined, rgb_gold);
 
-  document.getElementById("start")!.addEventListener("click", startBackgroundMusic)
-
-
-  // Overwrite text
-  // CanvasRenderingContext2D.prototype.fillText = function(args) {
-  //   const [text, x, y] = args;
-  //   this.drawImage()
-  // }
-
-  // Add Game Elements
-
-  // SETUP Controllers
-  sprite_text.init();
+  // 
+  // Initialize everything
+  // 
   const canvas_controller = new CanvasController();
-  // const debug_panel = new DebugPanel(); 
   const game_logic = new GameLogic();
   const ui_text = new UIText();
-  // TODO: Combine entities?
-  const sprites: Sprite[] = sprite_data_list.map(d => new Sprite(d));
-  const game_entities: GameEntity[] = game_entities_data_list.map(d => new GameEntity(d));
+  sprite_data_list.map(d => globals.sprites.push(new Sprite(d)));
+  game_entities_data_list.map(d => globals.game_entities.push(new GameEntity(d)));
 
-  
-  // Add custom cursor
-  // const buttons_frame = spritesheet_json.frames.find((frame: SpritesheetFrame) => frame.filename === "cursor.aseprite").frame;
-  // const cursor_canvas = canvasFromSpritesheet(buttons_frame, 48, 48);
-  // document.body.style.cursor = `url(${cursor_canvas.toDataURL()}), none`;
-
-  // 
-  // Mouse Listeners
-  // 
   document.addEventListener("mousemove", (e) => {
     // TODO: Throttle mousemove
     globals.mousepos.x = e.x;
     globals.mousepos.y = e.y;
   });
-  window.addEventListener("click", () => {
-    game_entities.find(entity => entity.is_hovering)
-    ?.onClick();
-  });
-  
   
   // 
-  // Render Loop
+  // Remove loader and get ready to start
   // 
-  let previousTime = 0;
-  // 
-  (function draw(currentTime: number) {
-    const delta = currentTime - previousTime;
-    globals.elapsed += delta;
+  document.getElementById("loading")?.remove();
+  const start_button = document.getElementById("start")!;
+  if(skip_loading) {
+    start();
+  }
+  else {
+    start_button.addEventListener("click", start);
+  }
 
-    if (delta >= interval) {
-      previousTime = currentTime - (delta % interval);
+  /**
+   * Start Game Loop
+   */
+  function start() {
+    // 
+    start_button.remove();
+    const steps = skip_loading ? 1 : 40;
+    loading_ctx.fillStyle = 'red';
+   
+    new Animator(100, steps, undefined, (repeats_left: number) => {
+      const step_percent = 1 - (repeats_left / steps); 
+      loading_ctx.clearRect(0, 0, loading_canvas.width, loading_canvas.height * step_percent);
+      if(repeats_left == 1) loading_canvas.remove();
+    });
 
-      // CURSOR
-      document.body.style.cursor = globals.cursor;
-      globals.cursor = 'default';
+    // Add custom cursor
+    // const buttons_frame = spritesheet_json.frames.find((frame: SpritesheetFrame) => frame.filename === "cursor.aseprite").frame;
+    // const cursor_canvas = canvasFromSpritesheet(buttons_frame, 48, 48);
+    // document.body.style.cursor = `url(${cursor_canvas.toDataURL()}), none`;
 
-      // 
-      // CLEAR CANVAS
-      // 
-      main_ctx.clearRect(0, 0, canvas_width, canvas_height);
+    // 
+    // Mouse Listeners
+    // 
+    window.addEventListener("click", () => {
+      globals.game_entities.find(entity => entity.is_hovering)
+      ?.onClick();
+    });
+    
+    // 
+    // Render Loop
+    // 
+    let previousTime = 0;
+    // 
+    (function draw(currentTime: number) {
+      const delta = currentTime - previousTime;
+      globals.elapsed += delta;
 
-      // 
-      // UPDATE AND RENDER
-      // 
-      // 
-      // Render sprites
-      // TODO: sprites on background canvas?
-      sprites.map(s => s.render(main_ctx));
+      if (delta >= interval) {
+        previousTime = currentTime - (delta % interval);
 
-      // Update logic for resource quantity
-      game_logic.onUpdate(delta);
+        // CURSOR
+        document.body.style.cursor = globals.cursor;
+        globals.cursor = 'default';
 
-      // Update all entities
-      game_entities.map((entity: GameEntity) => {
-        entity.onUpdate();
-        entity.render(main_ctx);
-      });
-      // 
+        // 
+        // CLEAR CANVAS
+        // 
+        main_ctx.clearRect(0, 0, container_width, container_height);
 
-      // Update the hitmask to check collisions
-      hitmaskUpdate();
 
-      // Render Cycle
-      
-      // UI Text
-      ui_text.onUpdate();
-      ui_text.render(main_ctx);
+        // DEBUG
+        // sprite_text.fillText(main_ctx, "ABCDEFGHIJKLMNOPQRSTUVWXYZ. Hello! 0123456789+5.5/10", 0, 0, 4, 0.1);
 
-      // 
-      // Although the game is currently set at 60fps, the state machine accepts a time passed to onUpdate
-      // If you'd like to unlock the framerate, you can instead use an interval passed to onUpdate to 
-      // adjust your physics so they are consistent across all frame rates.
-      // If you do not limit your fps or account for the interval your game will be far too fast or far too 
-      // slow for anyone with a different refresh rate than you.
-      // gameStateMachine.getState().onUpdate(delta);
+        // 
+        // UPDATE AND RENDER
+        // 
+        // 
+                
+        // UI Text
+        ui_text.onUpdate();
+        ui_text.render(main_ctx);
+        
+        // Render sprites
+        // TODO: sprites on background canvas?
+        globals.sprites.map(s => s.render(main_ctx));
 
-      // debug_panel.onUpdate();
-      // spriteController.render(main_ctx);
-    }
+        // Update logic for resource quantity
+        game_logic.onUpdate(delta);
 
-    requestAnimationFrame(draw);
-  })(0);
+        // Update all entities
+        globals.game_entities.map((entity: GameEntity) => {
+          entity.onUpdate();
+          entity.render(main_ctx);
+        });
+        
+        // Update all animations
+        globals.animators.map(animator => {
+          animator.onUpdate(delta);
+        });
 
+        // Update the hitmask to check collisions
+        hitmaskUpdate();
+
+        // Render Cycle
+
+      }
+
+      requestAnimationFrame(draw);
+    })(0);
+  }
 }
-
-
-// Load spritesheet
-
- // Listen for mouse moves
-//  c2d.addEventListener("mousemove", (event) => {
-//   // Check whether point is inside circle
-//   var path = new Path2D("M24 0h174v36h18v108h-18v30H93v24H24v-54H0V36h24V0Z");
-//   const test = () => {
-//     const isPointInPath = drawEngine.context.isPointInPath(path, event.offsetX, event.offsetY);
-//     drawEngine.context.fillStyle = isPointInPath ? "green" : "red";
-//     drawEngine.context.strokeStyle = 'black';
-//     drawEngine.context.fill(path);
-//     drawEngine.context.stroke(path);
-//     requestAnimationFrame(test);
-
-//   };
-//   requestAnimationFrame(test);
-// });
-
-// document.addEventListener("click", () => {
-//   game_entities.find(entity => entity.sprite?.is_hovering)
-//     ?.onClick();
-// });
