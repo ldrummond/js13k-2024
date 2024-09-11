@@ -1,5 +1,6 @@
 import { footer_space, footer_x, footer_y, grid_col, panel_top_row, pixel_size } from "@/core/constants";
 import { spritesheet } from "@/spritesheet";
+import { SpriteData } from "@/core/sprite";
 
 const icon_width = 10;
 
@@ -35,8 +36,8 @@ export const sprite_data_list: SpriteData[] = [
     spritesheet_rect: [spritesheet.iconScroll]
   },
   {
-    x: 100,
-    y: 34,
+    x: 98,
+    y: (panel_top_row * 1.5) / pixel_size,
     w: 60,
     spritesheet_rect: [
       spritesheet["character 0"],

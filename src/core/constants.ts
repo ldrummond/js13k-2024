@@ -68,6 +68,16 @@ export const tooltip_timeout = 222;
 export const dpr = window.devicePixelRatio || 1;
 export const window_width = window.innerWidth || 1;
 export const window_height = window.innerHeight || 1;
+export const violin_num_notes = 6;
+export const violin_num_octaves = 6;
+export const violin_note_frequencies: { [key: number]: number } = [
+  392.00,  // G4
+  329.63, // E4
+  293.66, // D4
+  246.94, // B3
+  220.00, // A3
+  196.00, // G3
+];;
 
 // First, start loading sprites
 // Sprites

@@ -63,7 +63,7 @@ class SpriteText {
    * @param color 
    * @returns 
    */
-  fillText(ctx: CanvasRenderingContext2D, text: string, x: number = 0, y: number = 0, size: number = 10, char_space: number = 0.3, color?: rgb): number {
+  fillText(ctx: CanvasRenderingContext2D, text: string, x: number = 0, y: number = 0, size: number = 10, char_space: number = 0.3, color?: rgb, char_delay?: number): number {
     if(!init) {
       this.init(); 
       init = true;
@@ -108,7 +108,7 @@ class SpriteText {
       const dest_h = size * char_height / char_width;
 
       debugLog(canvas);
-      ctx.drawImage(canvas!, 
+      const drawFn = () => ctx.drawImage(canvas!, 
         source_x, 
         source_y, 
         source_w, 
@@ -118,6 +118,8 @@ class SpriteText {
         dest_w, 
         dest_h
       );
+      if(char_delay) setTimeout(drawFn, char_delay * i);
+      else drawFn();
 
       // Use offset for line length
       offset += size + space;

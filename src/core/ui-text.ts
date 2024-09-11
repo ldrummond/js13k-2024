@@ -113,7 +113,7 @@ export class UIText {
   render(ctx: CanvasRenderingContext2D) {
     // Draw Resources
     resource_list.map((resource, i) => {
-      const diamond_width = 24 * pixel_size;
+      const diamond_width = 25 * pixel_size;
       let x = (footer_x - 7 + i * footer_space) * pixel_size;
       const diamond_y = (footer_y - 7) * pixel_size;
       const percent_full = resource.quantity / resource.limit;

@@ -1,22 +1,25 @@
-import { globals, grid_col, grid_row, panel_top_row, pixel_size, Resources } from "@/core/constants";
+import { globals, grid_col, grid_row, panel_top_row, pixel_size, Resources, violin_note_frequencies, violin_num_notes, violin_num_octaves } from "@/core/constants";
 import { GameEntity } from "@/core/game-entity";
 import { spritesheet } from "@/spritesheet";
 import { GameEntityState, GameEntityParams } from "@/core/game-entity";
+import { playViolinSound } from "@/core/game-audio";
+import { arrFull, percentOfRange, ranInt } from "@/core/utils";
+import { Animator } from "@/core/animator";
 
 const organ_x = grid_col(1) / pixel_size;
 const organ_y = (panel_top_row) / pixel_size;
 
-const violin_y = (panel_top_row + grid_row(4.25)) / pixel_size;
+const violin_y = (panel_top_row + grid_row(4.1)) / pixel_size;
 
 const book_x = 183;
 const book_y = (panel_top_row + grid_row(11)) / pixel_size;
 const book_w = 17;
 const book_space = 27;
 
-export const game_entities_data_list: GameEntityParams[] = [
-  ////////////////////////////////////////////////
-  // Organs
-  ////////////////////////////////////////////////
+////////////////////////////////////////////////
+// Organs
+////////////////////////////////////////////////
+const organs: GameEntityParams[] = [
   {
     name: "eye",
     description: "the final evolution",
@@ -211,30 +214,101 @@ export const game_entities_data_list: GameEntityParams[] = [
       spritesheet_rect: [spritesheet.tail]
     },
   },
-  ////////////////////////////////////////////////
-  // Music
-  ////////////////////////////////////////////////
+];
+
+////////////////////////////////////////////////
+// Music
+////////////////////////////////////////////////
+
+let note_buttons: GameEntityParams[] = [];
+const notes_width = 70;
+const notes_height = 30;
+const default_notes = arrFull(violin_num_notes).map(() => ranInt(violin_num_notes - 1));
+console.log(default_notes);
+
+// 
+for (let r = 0; r < violin_num_octaves; r++) {
+  const r_percent = r / violin_num_octaves;
+  for (let c = 0; c < violin_num_notes; c++) {
+    const c_percent = c / violin_num_notes;
+    // const note_hz = percentOfRange(r_percent, 650, 200);
+    const note_hz = violin_note_frequencies[r];
+    note_buttons.push({
+      state: GameEntityState.AVAILABLE, 
+      is_selected: !(default_notes[c] === r),
+      onClick() {
+        playViolinSound(note_hz);
+
+        // Turn off other buttons
+        globals.game_entities.map(entity => {
+          if(entity?.data?.c == c) {
+            entity.is_selected = true;
+          }
+        });
+
+        (this as GameEntity).is_selected = false;
+      },
+      sprite_data: {
+        id: 'note',
+        x: 212 + percentOfRange(c_percent, 0, notes_width),
+        y: violin_y + percentOfRange(r_percent, -1, notes_height),
+        w: 9,
+        spritesheet_rect: [spritesheet.note],
+        data: {
+          c,
+          r,
+          hz: note_hz
+        }
+      },
+    });
+  }  
+}
+
+const note_length = 300;
+const music = [ 
   {
     name: "violin",
     description: "null",
-    cooldown_duration: 2000,
+    cooldown_duration: note_length * violin_num_notes,
     state: GameEntityState.AVAILABLE, 
     gain: {
       [Resources.MATURITY]: {
         per_second: 1
       }
     },
+    onClick() {
+      const notes_to_play: GameEntity[] = [];
+      const selected_notes = globals.game_entities.filter(entity => entity.id.match('note') && !entity.is_selected);
+
+      for (let c = 0; c < violin_num_notes; c++) {
+        const col_note = selected_notes.find(note => note?.data?.c == c);  
+        if(col_note) notes_to_play.push(col_note);
+      }
+
+      new Animator(note_length, violin_num_notes, undefined, (repeats_left) => {
+        const note_to_play = notes_to_play[violin_num_notes - repeats_left];
+        if(note_to_play) {
+          note_to_play.onClick();
+          // playViolinSound(note_to_play.data.hz);
+        }
+      });
+    },
     sprite_data: {
       // x: 260,
-      x: 182,
+      x: 180,
       y: violin_y,
-      w: 22,
+      w: 25,
       spritesheet_rect: [spritesheet.violin]
     },
   },
-  ////////////////////////////////////////////////
-  // BOOKS
-  ////////////////////////////////////////////////
+  // Notes
+  ...note_buttons
+];
+
+////////////////////////////////////////////////
+// BOOKS
+////////////////////////////////////////////////
+const books = [
   {
     name: "codex gigas",
     description: "null",
@@ -318,4 +392,10 @@ export const game_entities_data_list: GameEntityParams[] = [
       spritesheet_rect: [spritesheet.iconPlaying, spritesheet.iconMuted]
     },
   },
+];
+
+export const game_entities_data_list: GameEntityParams[] = [
+  ...organs,
+  ...music,
+  ...books
 ];

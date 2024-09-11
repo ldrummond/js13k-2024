@@ -108,7 +108,7 @@ function spritesheetLoaded() {
         // UI Text
         ui_text.onUpdate();
         ui_text.render(main_ctx);
-        
+
         // Render sprites
         // TODO: sprites on background canvas?
         globals.sprites.map(s => s.render(main_ctx));

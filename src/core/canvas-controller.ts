@@ -17,9 +17,11 @@ import {
   grid_col,
   rgb_lightgrey,
   panel_top_row,
+  hsl_white,
+  violin_num_octaves,
 } from "./constants";
 import { sprite_text } from "./sprite-text";
-import { dupeCanvas, fillRectWithRandom } from "./utils";
+import { dupeCanvas, fillRectWithRandom, ranHSL } from "./utils";
 
 /**
  * 
@@ -64,7 +66,7 @@ export class CanvasController {
     // fillRectWithRandom(stage_background_ctx, minion_x, minion_y, minion_width, minion_height, hsl_darkred, 5, 0.5);
 
     // 
-    // CHOIR PANEL
+    // BAND PANEL
     // 
     const panel2_x = grid_col(14);
     const panel2_y = panel_top_row + grid_row(3.5); 
@@ -72,14 +74,22 @@ export class CanvasController {
     const panel2_height = grid_row(5.75);
     const panel_border_inset = 3 * pixel_size;
     // 
-    const panel2_border_x = panel2_x + panel_border_inset;
-    const panel2_border_y = panel2_y + panel_border_inset; 
-    const panel2_border_width = panel2_width - panel_border_inset * 2;
-    const panel2_border_height = panel2_height - panel_border_inset * 2;
+    // const panel2_border_x = panel2_x + panel_border_inset;
+    // const panel2_border_y = panel2_y + panel_border_inset; 
+    // const panel2_border_width = panel2_width - panel_border_inset * 2;
+    // const panel2_border_height = panel2_height - panel_border_inset * 2;
 
     fillRectWithRandom(stage_background_ctx, panel2_x, panel2_y, panel2_width, panel2_height, hsl_grey, 5);
-    fillRectWithRandom(stage_background_ctx, panel2_border_x, panel2_border_y, panel2_border_width, panel2_border_height, hsl_lightgrey, 20, 2);
-    sprite_text.fillText(stage_background_ctx, "CHOIR", panel2_x * 1.2 / pixel_size, (panel2_y + panel2_height) * .84 / pixel_size, 5, 0.8, rgb_lightgrey);
+    // fillRectWithRandom(stage_background_ctx, panel2_border_x, panel2_border_y, panel2_border_width, panel2_border_height, hsl_lightgrey, 20, 2);
+    sprite_text.fillText(stage_background_ctx, "THE BAND", panel2_x * 1.22 / pixel_size, (panel2_y + panel2_height) * .9 / pixel_size, 5, 0.84, rgb_lightgrey);
+    
+    const violin_octaves_height = 30 * pixel_size;
+
+    for (let i = 1; i < violin_num_octaves + 1; i++) {
+      stage_background_ctx.fillStyle = ranHSL(hsl_white);
+      stage_background_ctx.fillRect(panel2_x + 37 * pixel_size, panel2_y + (9 + i * violin_octaves_height / violin_num_octaves), 67 * pixel_size, pixel_size);
+    }
+
 
     // 
     // LIBRARY PANEL

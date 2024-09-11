@@ -9,6 +9,14 @@ export function debugLog(canvas: HTMLCanvasElement, text?: string) {
   // console.log(text);
 }
 
+export function percentOfRange(percent: number, lower_bound: number, upper_bound: number): number {
+  return lower_bound + (percent) * (upper_bound - lower_bound);
+}
+
+export function arrFull(x: number): number[] {
+  return Array(x).fill(x);
+}
+
 // 
 export function ranInt(v: number) {
   return Math.round(Math.random() * v);

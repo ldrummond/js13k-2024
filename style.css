@@ -73,18 +73,18 @@ canvas {
     box-sizing: border-box;
 }
 
-/* 
+
 #container::after {
     content: "";
     position: absolute;
     left: 22.3rem;
     top: 2.2rem;
     width: 19.8rem;
-    height: 32.5rem;
+    height: 35rem;
     background: linear-gradient(var(--c-black), var(--c-darkred));
     opacity: 0.5;
     mix-blend-mode: darken;
-} */
+}
 
 #container canvas {
     position: absolute;
@@ -149,104 +149,3 @@ svg {
         opacity: 0;
     }
 }
-
-#footer {
-    position: absolute;
-    bottom: 2rem;
-    width: 69rem;
-    margin-left: 5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-#footer > * {
-    width: 15rem;
-    color: var(--c-gold);
-    font-size: 1.5rem;
-    display: flex;
-    align-items: center;
-    display: none;
-}
-
-#footer .icon {
-    position: relative;
-    width: 2.6rem;
-    height: 2.6rem;
-    padding: 0.5rem;
-}
-
-/* TODO: Delete? */
-#footer .quantity {
-    width: 5.5rem;
-}
-
-#footer .per_second {
-    font-size: 1rem;
-}
-
-#footer .icon:before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    rotate: 45deg;
-    background: var(--c-darkred);
-    border: 0.2rem solid var(--c-darkred);
-}
-
-#footer svg {
-    width: 180%;
-    height: 180%;
-    position: relative;
-    top: 50%;
-    left: 50%;
-    translate: -50% -50%;
-}
-
-/* TODO: Remove */
-/* #debug {
-    display: none;
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 200px;
-    height: auto;
-    border: 1px solid var(--c-grey);
-    background-color: rgba(255, 255, 255, 0.7);
-    font-size: 12px;
-    z-index: 1000;
-}
-
-p {
-    margin: 0;
-}
-
-#debug ul {
-    padding: 8px;
-    list-style: none;
-}
-
-#debug li {
-    margin-bottom: 8px;
-}
-
-#debug .fill {
-    width: 100%;
-    height: 8px;
-    border: 1px solid var(--c-black);
-    position: relative;
-    overflow: hidden;
-}
-
-#debug .fill-inner {
-    width: 100%;
-    height: 8px;
-    background-color: rgba(100, 100, 250, 1);
-    position: absolute;
-    top: 0;
-    left: 0;
-    translate: -100% 0;
-} */

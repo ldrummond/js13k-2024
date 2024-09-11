@@ -28,12 +28,3 @@ interface ResourceDetails {
 }
 
 interface GameData { [key in Resources]: ResourceDetails};
-
-interface SpriteData {
-  x: number;
-  y: number;
-  w: number;
-  mirrored?: number;
-  spritesheet_rect: Rect[];
-  frame_duration?: number;
-}

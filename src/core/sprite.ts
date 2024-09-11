@@ -1,5 +1,5 @@
 import { base_canvas, pixel_size, spritesheet_img } from "./constants";
-import { debugLog, dupeCanvas } from "./utils";
+import { debugLog, dupeCanvas, ranInt } from "./utils";
 import { Animator } from "./animator";
 // 
 export function canvasFromSpritesheet(rect: Rect, canvas_width?: number, canvas_height?: number): [HTMLCanvasElement, CanvasRenderingContext2D] {
@@ -13,19 +13,33 @@ export function canvasFromSpritesheet(rect: Rect, canvas_width?: number, canvas_
 }
 
 // 
+export interface SpriteData {
+  id?: string;
+  x: number;
+  y: number;
+  w: number;
+  mirrored?: number;
+  spritesheet_rect: Rect[];
+  frame_duration?: number;
+  data?: any;
+}
 
 // 
 export default class Sprite {
+  id: string;
   x: number;
   y: number;
   w: number;
   h: number;
   active_canvas: HTMLCanvasElement;
   sprite_frame_canvases: HTMLCanvasElement[];
+  data: any = {};
 
   constructor(sprite_data: SpriteData) {
     // Set properties
-    const {x, y, w, mirrored, spritesheet_rect: spritesheet_rects, frame_duration} = sprite_data;
+    const {id, x, y, w, mirrored, spritesheet_rect: spritesheet_rects, frame_duration, data} = sprite_data;
+    this.id = id || ranInt(100) + '';
+    this.data = data; 
 
     // Canvas sizing and position for each sprite, based on the first frame
     const first_frame_rect = spritesheet_rects[0];

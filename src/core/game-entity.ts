@@ -2,6 +2,7 @@ import { click_duration, click_offset, confidence, createResourceTooltip, global
 import Sprite from "./sprite";
 import { debugLog, dupeCanvas, ranRGB, replaceColor } from "./utils";
 import { addToHitmask } from "./hitmask";
+import { SpriteData } from "@/core/sprite";
 
 export enum GameEntityState {
   "LOCKED",
@@ -9,7 +10,7 @@ export enum GameEntityState {
   "FLASHING",
   "HOVERING",
   "CLICKING",
-  "COOLDOWN"
+  "COOLDOWN",
 }
 
 export interface EntityCost {
@@ -42,6 +43,7 @@ export interface GameEntityParams {
   is_one_time_purchase?: boolean; 
   onClick?: () => void;
   hidden?: boolean;
+  is_selected?: boolean;
 }
 
 interface InteractiveCanvases {
@@ -75,11 +77,12 @@ export class GameEntity extends Sprite {
   is_too_expensive = false;
   is_hovering = false;
   is_clicking = false;
+  is_selected? = false;
   on_cooldown = false;
   hidden: boolean;
 
   constructor(opts: GameEntityParams) {
-    const { name, description, cooldown_duration, state, cost, gain, is_one_time_purchase, onClick, sprite_data, hidden = false } = opts;
+    const { name, description, cooldown_duration, state, cost, gain, is_one_time_purchase, onClick, sprite_data, hidden = false, is_selected } = opts;
 
     // Init sprite
     super(sprite_data);
@@ -96,6 +99,7 @@ export class GameEntity extends Sprite {
     this.sprite_data = sprite_data;
     this.hitmask_color = ranRGB();
     this.hidden = hidden;
+    this.is_selected = is_selected;
 
     this.preRenderCanvases();
     this.active_interactive_canvases = this.sprite_frames_interactive_canvases[0];
@@ -260,12 +264,14 @@ export class GameEntity extends Sprite {
       // Animate gain
       // TODO: Change resource map to resource list 
       // Or add function getResourceByResource
-      this.gain && Object.entries(this.gain).map(entry => {
-        const [resource, resource_gain_details] = entry as unknown as [Resources, EntityGainDetail];
-        resource_map[resource].quantity += resource_gain_details.quantity || 0;
-        resource_map[resource].increase_per_second += resource_gain_details.per_second || 0;
-        createResourceTooltip(resource, this.x + (this.w / 2), this.y);
-      });
+     if(this.gain) {
+        Object.entries(this.gain).map(entry => {
+          const [resource, resource_gain_details] = entry as unknown as [Resources, EntityGainDetail];
+          resource_map[resource].quantity += resource_gain_details.quantity || 0;
+          resource_map[resource].increase_per_second += resource_gain_details.per_second || 0;
+          createResourceTooltip(resource, this.x + (this.w / 2), this.y);
+        });
+      }
       
       if(this._onClick) this._onClick();
 
@@ -285,7 +291,7 @@ export class GameEntity extends Sprite {
     let ch = canvas_to_render.height;
 
     // Decide what to render
-    if(this.state === GameEntityState.LOCKED) {
+    if(this.state === GameEntityState.LOCKED || this.is_selected) {
       canvas_to_render = this.active_interactive_canvases.locked_canvas;
     }
     else if(this.is_too_expensive) {
@@ -303,6 +309,9 @@ export class GameEntity extends Sprite {
       h *= cooldown_anim_percent;
     }
     else if(this.is_hovering || (this.is_one_time_purchase && this.last_clicked)) {
+      canvas_to_render = this.active_interactive_canvases.hover_canvas;
+    }
+    if(this.is_hovering && this.is_selected) {
       canvas_to_render = this.active_interactive_canvases.hover_canvas;
     }
 

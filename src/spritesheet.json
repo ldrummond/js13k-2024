@@ -112,7 +112,7 @@
     "duration": 100
    },
    "iconCoin.aseprite": {
-    "frame": { "x": 152, "y": 7, "w": 9, "h": 9 },
+    "frame": { "x": 125, "y": 7, "w": 9, "h": 9 },
     "rotated": false,
     "trimmed": true,
     "spriteSourceSize": { "x": 1, "y": 1, "w": 9, "h": 9 },
@@ -120,7 +120,7 @@
     "duration": 100
    },
    "iconHormones.aseprite": {
-    "frame": { "x": 134, "y": 7, "w": 9, "h": 9 },
+    "frame": { "x": 152, "y": 7, "w": 9, "h": 9 },
     "rotated": false,
     "trimmed": true,
     "spriteSourceSize": { "x": 0, "y": 1, "w": 9, "h": 9 },
@@ -128,11 +128,11 @@
     "duration": 100
    },
    "iconHorn.aseprite": {
-    "frame": { "x": 125, "y": 7, "w": 9, "h": 9 },
+    "frame": { "x": 143, "y": 7, "w": 9, "h": 9 },
     "rotated": false,
-    "trimmed": true,
+    "trimmed": false,
     "spriteSourceSize": { "x": 0, "y": 0, "w": 9, "h": 9 },
-    "sourceSize": { "w": 10, "h": 10 },
+    "sourceSize": { "w": 9, "h": 9 },
     "duration": 100
    },
    "iconMuted.aseprite": {
@@ -152,7 +152,7 @@
     "duration": 100
    },
    "iconScroll.aseprite": {
-    "frame": { "x": 143, "y": 7, "w": 9, "h": 9 },
+    "frame": { "x": 134, "y": 7, "w": 9, "h": 9 },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": { "x": 0, "y": 0, "w": 9, "h": 9 },
@@ -183,8 +183,16 @@
     "sourceSize": { "w": 9, "h": 9 },
     "duration": 1000
    },
+   "note.aseprite": {
+    "frame": { "x": 187, "y": 7, "w": 7, "h": 4 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 0, "y": 1, "w": 7, "h": 4 },
+    "sourceSize": { "w": 15, "h": 15 },
+    "duration": 100
+   },
    "pituitary.aseprite": {
-    "frame": { "x": 187, "y": 7, "w": 5, "h": 5 },
+    "frame": { "x": 194, "y": 7, "w": 5, "h": 5 },
     "rotated": false,
     "trimmed": true,
     "spriteSourceSize": { "x": 1, "y": 1, "w": 5, "h": 5 },
