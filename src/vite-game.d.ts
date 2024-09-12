@@ -19,6 +19,7 @@ interface Rect {
 interface ResourceDetails {
   name: string;
   type: number;
+  placeholder_char: string;
   icon: string;
   limit: number;
   quantity: number;

@@ -73,6 +73,27 @@ export function pointInRect(x: number, y: number, r: Rect) {
   return x > r['x'] && x < (r['x'] + r['w']) && y > r['y'] && y < (r['y'] + r['h']);
 }
 
+export function fillRuleWithRandom(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number, 
+  hsl: hsl,
+  variance = 12,
+) {
+  const pixel_count_w = Math.ceil(w / pixel_size);
+  ctx.fillStyle = ranHSL(hsl, 0);
+  ctx.fillRect(x, y, w, pixel_size);
+
+  for (let c = 0; c <= pixel_count_w; c++) {
+    const rand = Math.random() > 0.75;
+    if(rand) {
+      ctx.fillStyle = ranHSL(hsl, variance);
+      ctx.fillRect(c * pixel_size + x, y, pixel_size, pixel_size);
+    }
+  }
+}
+
 // 
 // 
 export function fillRectWithRandom(

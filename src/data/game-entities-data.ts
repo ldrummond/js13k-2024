@@ -1,4 +1,4 @@
-import { globals, grid_col, grid_row, panel_top_row, pixel_size, Resources, violin_note_frequencies, violin_num_notes, violin_num_octaves } from "@/core/constants";
+import { globals, grid_col, grid_row, minion_lines, panel_top_row, pixel_size, Resources, violin_note_frequencies, violin_num_notes, violin_num_octaves } from "@/core/constants";
 import { GameEntity } from "@/core/game-entity";
 import { spritesheet_data } from "@/data/spritesheet-data";
 import { GameEntityState, GameEntityParams } from "@/core/game-entity";
@@ -21,13 +21,19 @@ const book_space = 27;
 ////////////////////////////////////////////////
 const organs: GameEntityParams[] = [
   {
-    name: "eye",
+    name: "evil eye",
     description: "the final evolution",
-    state: GameEntityState.LOCKED,
+    state: GameEntityState.AVAILABLE,
     cost: {
-      [Resources.HORMONES]: 100,
-      [Resources.MATURITY]: 50,
-      [Resources.KNOWLEDGE]: 4
+      [Resources.HORMONES]: {
+        quantity: 100,
+      },
+      [Resources.MATURITY]: {
+        quantity: 50,
+      },
+      [Resources.KNOWLEDGE]: {
+        quantity: 4
+      }
     },
     gain: {
       // [Resources.HORMONES]: {
@@ -50,13 +56,16 @@ const organs: GameEntityParams[] = [
     // cooldown_duration: 2000,
     state: GameEntityState.AVAILABLE,
     cost: {
-      [Resources.HORMONES]: 10
+      [Resources.HORMONES]: {
+        quantity: 10
+      }
     },
     gain: {
       [Resources.HORMONES]: {
         per_second: 0.5
       }
     },
+    purchase_limit: 1,
     is_one_time_purchase: true,
     sprite_data: {
       x: organ_x + 30,
@@ -66,13 +75,14 @@ const organs: GameEntityParams[] = [
     },
   },
   {
-    // TODO: Simplify locked vs click
     name: "kidney",
     description: "starts hormone production.",
     // cooldown_duration: 2000,
     state: GameEntityState.LOCKED,
     cost: {
-      [Resources.HORMONES]: 10
+      [Resources.HORMONES]: {
+        quantity: 10
+      }
     },
     gain: {
       [Resources.HORMONES]: {
@@ -95,6 +105,12 @@ const organs: GameEntityParams[] = [
     gain: {
       [Resources.HORMONES]: {
         quantity: 10
+      }
+    },
+    onClick() {
+      if(!globals.brain_first_clicked) {
+        globals.brain_first_clicked = true;
+        globals.minion_text = minion_lines.brain_clicked;
       }
     },
     sprite_data: {
@@ -140,7 +156,6 @@ const organs: GameEntityParams[] = [
   },
   {
     name: "claws",
-    description: "null",
     cooldown_duration: 2000,
     state: GameEntityState.LOCKED, 
     gain: {
@@ -161,7 +176,6 @@ const organs: GameEntityParams[] = [
   },
   {
     name: "horns",
-    description: "null",
     cooldown_duration: 2000,
     state: GameEntityState.LOCKED, 
     gain: {
@@ -182,7 +196,6 @@ const organs: GameEntityParams[] = [
   },
   {
     name: "hooves",
-    description: "null",
     cooldown_duration: 2000,
     state: GameEntityState.LOCKED, 
     gain: {
@@ -200,7 +213,6 @@ const organs: GameEntityParams[] = [
   },
   {
     name: "tail",
-    description: "null",
     cooldown_duration: 2000,
     state: GameEntityState.LOCKED, 
     gain: {
@@ -268,7 +280,6 @@ for (let r = 0; r < violin_num_octaves; r++) {
 const music = [ 
   {
     name: "violin",
-    description: "null",
     cooldown_duration: note_length * violin_num_notes,
     state: GameEntityState.AVAILABLE, 
     gain: {
@@ -311,7 +322,6 @@ const music = [
 const books = [
   {
     name: "codex gigas",
-    description: "null",
     cooldown_duration: 2000,
     state: GameEntityState.AVAILABLE, 
     gain: {
@@ -328,7 +338,6 @@ const books = [
   },
   {
     name: "the black arts",
-    description: "null",
     cooldown_duration: 2000,
     state: GameEntityState.AVAILABLE, 
     gain: {
@@ -345,7 +354,6 @@ const books = [
   },
   {
     name: "Dantes Inferno",
-    description: "null",
     cooldown_duration: 2000,
     state: GameEntityState.AVAILABLE, 
     gain: {
@@ -362,7 +370,6 @@ const books = [
   },
   {
     name: "chicken soup for the teenage devil",
-    description: "null",
     cooldown_duration: 2000,
     state: GameEntityState.AVAILABLE, 
     gain: {
@@ -387,7 +394,7 @@ const books = [
     },
     sprite_data: {
       x: 280,
-      y: 7,
+      y: 11,
       w: 10,
       spritesheet_rects: [spritesheet_data['iconPlaying'], spritesheet_data['iconMuted']]
     },

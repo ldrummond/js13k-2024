@@ -1,5 +1,5 @@
 import { spritesheet_data } from "@/data/spritesheet-data";
-import { pixel_size, rgb_white } from "./constants";
+import { confidence, hormones, icon_eye_placeholder_char, knowledge, maturity, pixel_size, rgb_white } from "./constants";
 import {  dupeCanvas, replaceColor, canvasFromSpritesheet } from "./utils";
 
 /**
@@ -28,8 +28,9 @@ function offsetCharCode(code: number): number {
   if(code == 43) code = 0; // +
   if(code == 33) code = 1; // !
   if(code == 63) code = 2; // ?
-  if(code > 45 && code < 58) code -= 17; // .,/,0-9,
-  if(code > 64 && code < 91) code -= 62; // ?, A-Z
+  if(code == 58) code = 3; // :
+  if(code > 45 && code < 58) code -= 16; // .,/,0-9,
+  if(code > 64 && code < 91) code -= 61; // ?, A-Z
   return code; 
 }
 
@@ -37,13 +38,17 @@ function offsetCharCode(code: number): number {
 // const char_height = 5;
 const char_width = 5;
 const char_height = 7;
-let init = false; 
 
 //
 class SpriteText {
   spritesheet_text_canvas?: HTMLCanvasElement = document.createElement("canvas");
   spritesheet_text_ctx?: CanvasRenderingContext2D;
   color_canvases: {[key: string]: HTMLCanvasElement} = {};
+  icon_hormones_canvas?: HTMLCanvasElement;
+  icon_maturity_canvas?: HTMLCanvasElement;
+  icon_confidence_canvas?: HTMLCanvasElement;
+  icon_knowledge_canvas?: HTMLCanvasElement;
+  icon_eye_canvas?: HTMLCanvasElement;
 
   constructor() {
   }
@@ -54,6 +59,12 @@ class SpriteText {
     console.log('Sprite Text Init: ', spritesheet_data['textAlt'], canvas.width, canvas.height);
     this.spritesheet_text_canvas = canvas;
     this.spritesheet_text_ctx = ctx;
+
+    this.icon_hormones_canvas = canvasFromSpritesheet(spritesheet_data['iconHormones'])[0];
+    this.icon_maturity_canvas = canvasFromSpritesheet(spritesheet_data['iconHorn'])[0];
+    this.icon_confidence_canvas = canvasFromSpritesheet(spritesheet_data['iconCoin'])[0];
+    this.icon_knowledge_canvas = canvasFromSpritesheet(spritesheet_data['iconScroll'])[0];
+    this.icon_eye_canvas = canvasFromSpritesheet(spritesheet_data['eye'])[0];
   }
 
   /**
@@ -72,6 +83,7 @@ class SpriteText {
     x *= pixel_size;
     y *= pixel_size;
     size *= pixel_size;
+    line_width = line_width ? line_width * pixel_size : undefined;
     const space = char_space * size; 
     let cur_offset = 0;
     let carriage_returns = 0;
@@ -81,15 +93,26 @@ class SpriteText {
     let canvas = this.spritesheet_text_canvas;
     if(color) canvas = this.getColorCanvas(color);
 
+    const icon_hormones_code = hormones.placeholder_char.charCodeAt(0);
+    const icon_maturity_code = maturity.placeholder_char.charCodeAt(0);
+    const icon_confidence_code = confidence.placeholder_char.charCodeAt(0);
+    const icon_knowledge_code = knowledge.placeholder_char.charCodeAt(0);
+    const icon_eye_code = icon_eye_placeholder_char.charCodeAt(0);
+    const icon_codes = [icon_hormones_code, icon_maturity_code, icon_confidence_code, icon_knowledge_code, icon_eye_code];
+
     let total_offset = 0; 
     text.split('').map((_,i) => {
       const code = text.charCodeAt(i);
       const char_is_space = code == 32;
       const is_period = code == 46; 
       const is_question = code == 63;
+      const is_colon = code == 58;
+
+      const char_is_icon = icon_codes.includes(code);
+      const dont_render_char = char_is_space || char_is_icon;            
   
-      // Tighten up ! and . marks
-      if(code == 33 || is_period) {
+      // Tighten up !, ., : marks
+      if(code == 33 || is_period || is_colon) {
         cur_offset -= (space * 0.8);
       }
 
@@ -118,7 +141,7 @@ class SpriteText {
       );
       
       // Dont render space
-      if(!char_is_space) {
+      if(!dont_render_char) {
         // Use offset for line length
         cur_offset += size + space;
         
@@ -130,6 +153,28 @@ class SpriteText {
       }
       else {
         cur_offset += (space * 2); 
+
+        if(char_is_icon) {
+          let icon_canvas_to_render = this.icon_hormones_canvas;
+
+          if(code === icon_maturity_code && this.icon_maturity_canvas) {
+            icon_canvas_to_render = this.icon_maturity_canvas;
+          }
+          if(code === icon_confidence_code && this.icon_confidence_canvas) {
+            icon_canvas_to_render = this.icon_confidence_canvas;
+          }
+          if(code === icon_knowledge_code && this.icon_knowledge_canvas) {
+            icon_canvas_to_render = this.icon_knowledge_canvas;
+          }
+          if(code === icon_eye_code && this.icon_eye_canvas) {
+            icon_canvas_to_render = this.icon_eye_canvas;
+          }
+
+          if(icon_canvas_to_render) {
+            ctx.drawImage(icon_canvas_to_render, dest_x - space * 2, dest_y - space, char_height * 2.3, char_height * 2.3);
+            cur_offset += (space * 5);
+          }
+        }
       }
 
       if(!line_width) {
@@ -160,7 +205,7 @@ class SpriteText {
     const color_key = "" + color[0] + color[1] + color[2];
     if(this.color_canvases[color_key]) return this.color_canvases[color_key];
     if(!this.spritesheet_text_canvas?.width) console.log('Canvas not defined yet');
-    console.log('GetColorCanvas:', this.spritesheet_text_canvas, this.spritesheet_text_canvas?.width, this.spritesheet_text_canvas?.height);
+    // console.log('GetColorCanvas:', this.spritesheet_text_canvas, this.spritesheet_text_canvas?.width, this.spritesheet_text_canvas?.height);
     const [color_canvas, color_ctx] = dupeCanvas(this.spritesheet_text_canvas!);
     replaceColor(color_canvas!, color_ctx, rgb_white, color);
     this.color_canvases[color_key] = color_canvas;

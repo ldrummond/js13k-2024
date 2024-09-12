@@ -1,4 +1,4 @@
-import { click_duration, click_offset, confidence, createResourceTooltip, globals, hormones, knowledge, maturity, resource_map, Resources, sprite_border_color, sprite_border_hover_color, tooltip_timeout } from "./constants";
+import { click_duration, click_offset, createResourceTooltip, globals, resource_map, Resources, sprite_border_color, sprite_border_hover_color, tooltip_timeout } from "./constants";
 import Sprite from "./sprite";
 import {  dupeCanvas, ranRGB, replaceColor } from "./utils";
 import { addToHitmask } from "./hitmask";
@@ -13,23 +13,23 @@ export const enum GameEntityState {
   "COOLDOWN",
 }
 
-export interface EntityCost {
-  [Resources.HORMONES]?: number;
-  [Resources.MATURITY]?: number;
-  [Resources.CONFIDENCE]?: number;
-  [Resources.KNOWLEDGE]?: number;
-}
-
-export interface EntityGainDetail {
+export interface EntityTransactionDetail {
   quantity?: number;
   per_second?: number;
 }
 
+export interface EntityCost {
+  [Resources.HORMONES]?: EntityTransactionDetail;
+  [Resources.MATURITY]?: EntityTransactionDetail;
+  [Resources.CONFIDENCE]?: EntityTransactionDetail;
+  [Resources.KNOWLEDGE]?: EntityTransactionDetail;
+}
+
 export interface EntityGain {
-  [Resources.HORMONES]?: EntityGainDetail;
-  [Resources.MATURITY]?: EntityGainDetail;
-  [Resources.CONFIDENCE]?: EntityGainDetail;
-  [Resources.KNOWLEDGE]?: EntityGainDetail;
+  [Resources.HORMONES]?: EntityTransactionDetail;
+  [Resources.MATURITY]?: EntityTransactionDetail;
+  [Resources.CONFIDENCE]?: EntityTransactionDetail;
+  [Resources.KNOWLEDGE]?: EntityTransactionDetail;
 }
 
 export interface GameEntityParams {
@@ -41,6 +41,7 @@ export interface GameEntityParams {
   gain?: EntityGain;
   sprite_data: SpriteData;
   is_one_time_purchase?: boolean; 
+  purchase_limit?: number;
   onClick?: () => void;
   hidden?: boolean;
   is_selected?: boolean;
@@ -73,6 +74,8 @@ export class GameEntity extends Sprite {
   elapsed_cooldown_percent: number = 0;
   hover_start: number = 0;
   last_clicked?: number;
+  purchase_count: number = 0;
+  purchase_limit?: number;
   is_one_time_purchase = false; 
   is_too_expensive = false;
   is_hovering = false;
@@ -82,7 +85,7 @@ export class GameEntity extends Sprite {
   hidden: boolean;
 
   constructor(opts: GameEntityParams) {
-    const { name, description, cooldown_duration, state, cost, gain, is_one_time_purchase, onClick, sprite_data, hidden = false, is_selected } = opts;
+    const { name, description, cooldown_duration, state, cost, gain, is_one_time_purchase, purchase_limit, onClick, sprite_data, hidden = false, is_selected } = opts;
 
     // Init sprite
     super(sprite_data);
@@ -94,6 +97,7 @@ export class GameEntity extends Sprite {
     this.state = state;
     this.cost = cost;
     this.gain = gain;
+    if(typeof purchase_limit === 'number' && purchase_limit > 0) this.purchase_limit = purchase_limit;
     this.is_one_time_purchase = !!is_one_time_purchase;
     this._onClick = onClick;
     this.sprite_data = sprite_data;
@@ -231,13 +235,21 @@ export class GameEntity extends Sprite {
     // For locked entitites
     if(this.cost) {
       const cost = this.cost!;
-      // TODO: function
-      this.is_too_expensive = !(
-        hormones.quantity >= (cost[Resources.HORMONES] || 0) &&
-        confidence.quantity >= (cost[Resources.CONFIDENCE] || 0) &&
-        knowledge.quantity >= (this.cost[Resources.KNOWLEDGE] || 0) &&
-        maturity.quantity >= (this.cost[Resources.MATURITY] || 0)
-      );
+      
+      // Determine if cost is greater than current value
+      let too_expensive = false;
+      
+      Object.entries(cost).map(entry => {
+        const [resource, resource_cost_details] = entry as unknown as [Resources, EntityTransactionDetail];
+        if(resource_cost_details.quantity && resource_map[resource].quantity < resource_cost_details.quantity) {
+          too_expensive = true;
+        }
+        if(resource_cost_details.per_second && resource_map[resource].increase_per_second < resource_cost_details.per_second) {
+          too_expensive = true;
+        }
+      });
+
+      this.is_too_expensive = too_expensive;
     }
 
     // For entities with a cooldown
@@ -253,8 +265,9 @@ export class GameEntity extends Sprite {
   }
 
   onClick() {
-    if(this.is_clicking || (this.is_one_time_purchase && this.last_clicked)) return; 
+    if(this.is_clicking || (this.is_one_time_purchase && this.last_clicked) || (this.purchase_limit && (this.purchase_count >= this.purchase_limit))) return; 
 
+    // PURCHASE
     if(this.state === GameEntityState.AVAILABLE) {
       this.is_clicking = true; 
 
@@ -264,12 +277,13 @@ export class GameEntity extends Sprite {
         this.state = GameEntityState.COOLDOWN;
       }
 
+      // TODO: Add cost
+
       // Animate gain
-      // TODO: Change resource map to resource list 
-      // Or add function getResourceByResource
-     if(this.gain) {
+      this.purchase_count += 1;
+      if(this.gain) {
         Object.entries(this.gain).map(entry => {
-          const [resource, resource_gain_details] = entry as unknown as [Resources, EntityGainDetail];
+          const [resource, resource_gain_details] = entry as unknown as [Resources, EntityTransactionDetail];
           resource_map[resource].quantity += resource_gain_details.quantity || 0;
           resource_map[resource].increase_per_second += resource_gain_details.per_second || 0;
           createResourceTooltip(resource, this.x + (this.w / 2), this.y);

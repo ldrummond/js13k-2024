@@ -14,7 +14,6 @@ import {
   grid_col,
   panel_top_row,
   violin_num_octaves,
-  rgb_lightgrey,
   hsl_darkgreen,
   hsl_offblack,
   char_x,
@@ -27,6 +26,8 @@ import {
   minion_y,
   minion_width,
   minion_height,
+  hsl_darkgrey,
+  rgb_darkgrey,
 } from "./constants";
 import { sprite_text } from "./sprite-text";
 import { dupeCanvas, fillRectWithRandom, ranHSL } from "./utils";
@@ -65,8 +66,8 @@ export function renderBackground() {
   // 
   // MINION PANEL
   // 
-  fillRectWithRandom(stage_background_ctx, minion_x, minion_y, minion_width, minion_height, hsl_grey, 5);
-  // fillRectWithRandom(stage_background_ctx, minion_x, minion_y, minion_width, minion_height, hsl_darkred, 5, 0.5);
+  fillRectWithRandom(stage_background_ctx, minion_x, minion_y, minion_width, minion_height, hsl_darkgrey, 5);
+  // fillRectWithRandom(stage_background_ctx, minion_x, minion_y, minion_width, minion_height, hsl_darkgreen, 5, 0.5);
 
   // 
   // BAND PANEL
@@ -78,7 +79,7 @@ export function renderBackground() {
  
   fillRectWithRandom(stage_background_ctx, panel2_x, panel2_y, panel2_width, panel2_height, hsl_grey, 8);
   fillRectWithRandom(stage_background_ctx, panel2_x, panel2_y, panel2_width, panel2_height, hsl_darkgreen, 25, 1, 1);
-  sprite_text.fillText(stage_background_ctx, "The Band", panel2_x * 1.22 / pixel_size, (panel2_y + panel2_height) * .88 / pixel_size, 5, 0.83, undefined, rgb_lightgrey);
+  sprite_text.fillText(stage_background_ctx, "The Band", panel2_x * 1.22 / pixel_size, (panel2_y + panel2_height) * .88 / pixel_size, 5, 0.83, undefined, rgb_darkgrey);
   
   const violin_octaves_height = 30 * pixel_size;
 
@@ -97,7 +98,7 @@ export function renderBackground() {
   const panel3_height = grid_row(5.75);
   fillRectWithRandom(stage_background_ctx, panel3_x, panel3_y, panel3_width, panel3_height, hsl_grey, 8);
   fillRectWithRandom(stage_background_ctx, panel3_x, panel3_y, panel3_width, panel3_height, hsl_darkgreen, 25, 1, 1);
-  sprite_text.fillText(stage_background_ctx, "The Library", panel3_x * 1.05 / pixel_size, (panel3_y + panel3_height) * .91 / pixel_size, 5, 0.81, undefined, rgb_lightgrey);
+  sprite_text.fillText(stage_background_ctx, "The Library", panel3_x * 1.05 / pixel_size, (panel3_y + panel3_height) * .91 / pixel_size, 5, 0.81, undefined, rgb_darkgrey);
 
   // 
   // CHARACTER PANEL
@@ -112,10 +113,10 @@ export function renderBackground() {
   // 
   // INFO PANEL
   // 
-  const info_x = grid_col(7);
-  const info_y = grid_row(16.3);
-  const info_w = grid_col(6.5);
-  const info_h = grid_row(2.2);
+  const info_x = grid_col(14);
+  const info_y = panel_top_row; 
+  const info_w = grid_col(9);
+  const info_h = grid_row(2.75);
   fillRectWithRandom(stage_background_ctx, info_x, info_y, info_w, info_h, hsl_grey, 6);
 
 

@@ -73,19 +73,6 @@ canvas {
     box-sizing: border-box;
 }
 
-
-#container::after {
-    content: "";
-    position: absolute;
-    left: 22.3rem;
-    top: 2.2rem;
-    width: 19.8rem;
-    height: 35rem;
-    background: linear-gradient(var(--c-black), var(--c-darkred));
-    opacity: 0.5;
-    mix-blend-mode: darken;
-}
-
 #container canvas {
     position: absolute;
     width: 100%;
@@ -94,13 +81,13 @@ canvas {
 
 #text {
     position: absolute;
-    top: 1.4rem;
-    right: 2.8rem;
+    top: 8rem;
+    left: 45rem;
     width: 22rem;
     height: 6rem;
     color: var(--c-grey);
     font-weight: 100;
-    font-size: 1rem;
+    font-size: 1.2rem;
 }
 
 #text p {

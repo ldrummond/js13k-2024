@@ -5,7 +5,7 @@ hitmask_ctx.scale(dpr, dpr);
 let hitmask_rect = hitmask_canvas.getBoundingClientRect();
 
 // TODO: Remove
-// hitmask_canvas.id = 'hitmask';
+hitmask_canvas.id = 'hitmask';
 container.prepend(hitmask_canvas);
 hitmask_canvas.style.opacity = "0";
 // 
