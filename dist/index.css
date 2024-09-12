@@ -1,0 +1,151 @@
+/* Get rid of any margins, set background black, use flexbox to center */
+/* REM Defined in Constants */
+/* TODO: SVG fills and strokes */
+/* TODO: Color variables */
+:root {
+    --c-darkgrey: #111;
+    --c-gold: rgb(155, 132, 2);
+    --c-black: rgb(5, 0, 0);
+    --c-red: #832323;
+    --c-darkred: #5d3434;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    overflow: hidden;
+}
+
+.fill {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+}
+
+.centered {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+}
+
+#loading-canvas {
+    background: var(--c-black);
+}
+
+#start {
+    outline: none;
+    border: 0.1rem solid var(--c-gold); 
+    background-color: var(--c-darkgrey);
+    color: var(--c-gold);
+    padding: 1rem 2rem;
+    letter-spacing: 0.1rem;
+    z-index: 10;
+    cursor: pointer;
+}
+
+#mute {
+    position: absolute;
+    z-index: 10;
+    left: 100px;
+}
+
+html, body {
+    margin: 0;
+    background-color: #222;
+    -webkit-font-smoothing: none;
+    font-family: monospace;
+}
+
+canvas {
+    image-rendering: pixelated;
+}
+
+#container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    box-sizing: border-box;
+}
+
+
+#container::after {
+    content: "";
+    position: absolute;
+    left: 22.3rem;
+    top: 2.2rem;
+    width: 19.8rem;
+    height: 35rem;
+    background: linear-gradient(var(--c-black), var(--c-darkred));
+    opacity: 0.5;
+    mix-blend-mode: darken;
+}
+
+#container canvas {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+#text {
+    position: absolute;
+    top: 1.4rem;
+    right: 2.8rem;
+    width: 22rem;
+    height: 6rem;
+    color: var(--c-grey);
+    font-weight: 100;
+    font-size: 1rem;
+}
+
+#text p {
+    margin-bottom: 0.2rem;
+}
+
+#text p:first-child {
+    color: var(--c-gold);
+    text-transform: uppercase;
+    letter-spacing: 0.1rem;
+}
+
+svg {
+    fill: var(--c-gold);
+    stroke: var(--c-black);
+    stroke-width: 0.1rem;
+    width: 12rem;
+    height: 12rem;
+}
+
+.resource-gain {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 1s ease-in;
+    border: 0.2rem solid var(--c-gold);
+    width: 2rem;
+    height: 3rem;
+    margin-bottom: 5rem;
+    animation: fadeaway 1s ease-out forwards;
+    /* TODO: Colors */
+    background: var(--c-grey);
+    pointer-events: none;
+}
+
+@keyframes fadeaway {
+    0% {
+        translate: -50% -110%;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        translate: -50% -150%;
+        opacity: 0;
+    }
+}
