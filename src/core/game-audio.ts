@@ -47,7 +47,7 @@ export function startBackgroundMusic() {
 export function playNote(note: number | undefined, index: number) {
   audio_context.resume();
   if(note) {
-    console.log(note);
+    console.log("Play note:", note);
     
     const oscillator = audio_context.createOscillator();
     oscillator.connect(gain_node);

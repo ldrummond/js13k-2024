@@ -71,7 +71,12 @@ export class UIText {
    * 
    */
   updateMinionText(text:string) {
-
+    const ms_per_char = 100;
+    const num_chars = text.length;
+    // new Animator(ms_per_char, num_chars, undefined, (repeats_left) => {
+    //   const char_index = num_chars - repeats_left;
+      
+    // });
   }
 
   // 

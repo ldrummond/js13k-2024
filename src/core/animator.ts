@@ -55,8 +55,6 @@ export class Animator {
 
   // Cancel the animation
   cancel(): void {
-    console.log(globals.animators);
     globals.animators.removeElement(this);
-    console.log(globals.animators);
   }
 }

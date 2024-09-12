@@ -1,4 +1,4 @@
-import { defineConfig, IndexHtmlTransformContext, Plugin, ResolvedConfig } from 'vite';
+import { defineConfig, IndexHtmlTransformContext, Plugin } from 'vite';
 import path from 'path';
 import fs from 'fs/promises';
 import typescriptPlugin from '@rollup/plugin-typescript';
@@ -8,14 +8,12 @@ import CleanCSS from 'clean-css';
 import { statSync } from 'fs';
 const { execFileSync } = require('child_process');
 import ect from 'ect-bin';
-import { exec } from 'child_process';
-import { compile, compileFromFile } from 'json-schema-to-typescript'
-
+import { generateSpritesheet } from './asesprite-plugin';
 const htmlMinify = require('html-minifier');
 const tmp = require('tmp');
 const ClosureCompiler = require('google-closure-compiler').compiler;
 
-export default defineConfig(({ command, mode }) => {
+export default defineConfig(async ({ command, mode }) => {
   const config = {
     server: {
       port: 3000,
@@ -25,10 +23,12 @@ export default defineConfig(({ command, mode }) => {
         '@': path.resolve(__dirname, './src'),
       }
     },
-    plugins: [
-      asespritePlugin()
-    ]
   };
+  
+  await generateSpritesheet();
+
+  console.log("Starting build config");
+  
 
   if (command === 'build') {
     // @ts-ignore
@@ -50,8 +50,9 @@ export default defineConfig(({ command, mode }) => {
         },
       }
     };
+    // Can't figure out why, but cant run sprite plugin in build
     // @ts-ignore
-    config.plugins.push(typescriptPlugin(), closurePlugin(), roadrollerPlugin(), ectPlugin());
+    config.plugins = [typescriptPlugin(), closurePlugin(), roadrollerPlugin(), ectPlugin()];
   }
 
   return config;
@@ -63,95 +64,19 @@ function closurePlugin(): Plugin {
     // @ts-ignore
     renderChunk: applyClosure,
     enforce: 'post',
-  }
+  };
 }
 
-// https://github.com/narol1024/rollup-plugin-sprite/blob/master/index.js
-// https://stackoverflow.com/questions/69626090/how-to-watch-public-directory-in-vite-project-for-hot-reload
-// https://hackernoon.com/creating-a-custom-plugin-for-vite-the-easiest-guide
-function asespritePlugin(): Plugin {
-  let config: ResolvedConfig;
-
-  return {
-    name: 'asesprite-packer',
-    async configResolved(_config) {
-      config = _config;
-    },
-    // handleHotUpdate({ file, server }) {
-    //   if (file.endsWith('.ase') || file.endsWith('.aseprite')) {
-    //     console.log('Sprite file updated. Reloading')
-    //     server.ws.send({
-    //       type: 'full-reload',          
-    //       path: '*'
-    //     });
-    //     return [];
-    //   }
-    // },
-    async buildStart() {
-      const source_dir = path.resolve(config.root, "src/assets/sprites/");
-      const source_glob = source_dir + '/**';
-      const target_name = "spritesheet";
-      const target_png_path = path.resolve(config.root, `public/${target_name}.png`);
-      const target_json_path = path.resolve(config.root, `src/${target_name}.json`);
-      const target_json_ts_path = path.resolve(config.root, `src/${target_name}.ts`)
-
-      // Wath these files
-      this.addWatchFile(source_dir);
-
-      try {
-        // Asesprite CLI
-        // https://www.aseprite.org/docs/cli/#sheet-pack
-        const ase_exec = "/Applications/Aseprite.app/Contents/MacOS/aseprite";
-        await new Promise((resolve, reject) => {
-          // Execute Asesprite packer
-          const binary = `${ase_exec} -b ${source_glob} --trim --sheet-pack --sheet ${target_png_path} --data ${target_json_path}`;
-          exec(binary, (err) => {
-            if(err) reject(err);
-            resolve(null);
-          });
-        });
-
-        // Clean up Asesprite Spritesheet Output
-        let sprite_names: string[] = [];
-        const sprite_json = JSON.parse(await fs.readFile(target_json_path, 'utf8'));
-        Object.entries(sprite_json.frames).forEach(([key, value]) => {
-          let sprite_data = value as any; 
-          delete sprite_json.frames[key]
-          key = key.split(".ase")[0]
-          sprite_json.frames[key] = sprite_data.frame;
-          sprite_names.push(key);
-        })
-
-        // Write Spritesheet JSON as TS Object
-        const spritesheet_json_typed = `
-export type SpriteNames = ${sprite_names.map(v => "'" + v + "'").join(" | ")}
-export type Spritesheet = Record<SpriteNames, Rect>
-export const spritesheet: Spritesheet = ${JSON.stringify(sprite_json.frames)}
-`
-        await fs.writeFile(target_json_ts_path, spritesheet_json_typed); 
-      } catch (error) {
-        console.log("Asesprite Error: ", error);
-      }
-    },
-  }
-}
-
-/**
- * 
- * @param js 
- * @param chunk 
- * @returns 
- */
 async function applyClosure(js: string, chunk: any) {
   const tmpobj = tmp.fileSync();
   // replace all consts with lets to save about 50-70 bytes
   // ts-ignore
-  js = js.replaceAll('const ', 'let ');
+  js = js.replace(/const /g, 'let ');
 
   await fs.writeFile(tmpobj.name, js);
   const closureCompiler = new ClosureCompiler({
     js: tmpobj.name,
-    externs: 'externs.js',
+    // externs: 'externs.js',
     compilation_level: 'ADVANCED',
     language_in: 'ECMASCRIPT_2020',
     language_out: 'ECMASCRIPT_2020',
@@ -167,12 +92,10 @@ async function applyClosure(js: string, chunk: any) {
 
       console.warn(stdErr); // If we make it here, there were warnings but no errors
     });
-  })
+  });
 }
 
-/**
- * 
- */
+
 function roadrollerPlugin(): Plugin {
   return {
     name: 'vite:roadroller',

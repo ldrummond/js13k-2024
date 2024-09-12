@@ -1,16 +1,6 @@
-import { base_canvas, pixel_size, spritesheet_img } from "./constants";
-import { debugLog, dupeCanvas, ranInt } from "./utils";
+import { pixel_size, spritesheet_img } from "./constants";
+import {  ranInt, canvasFromSpritesheet } from "./utils";
 import { Animator } from "./animator";
-// 
-export function canvasFromSpritesheet(rect: Rect, canvas_width?: number, canvas_height?: number): [HTMLCanvasElement, CanvasRenderingContext2D] {
-  const [canvas,ctx] = dupeCanvas(base_canvas);
-  canvas_width = canvas_width || rect.w;
-  canvas_height = canvas_height || rect.h;
-  canvas.width = canvas_width;
-  canvas.height = canvas_height;
-  ctx.drawImage(spritesheet_img, rect.x, rect.y, rect.w, rect.h, 0, 0, canvas_width, canvas_height);
-  return [canvas, ctx];
-}
 
 // 
 export interface SpriteData {
@@ -19,7 +9,7 @@ export interface SpriteData {
   y: number;
   w: number;
   mirrored?: number;
-  spritesheet_rect: Rect[];
+  spritesheet_rects: Rect[];
   frame_duration?: number;
   data?: any;
 }
@@ -37,7 +27,7 @@ export default class Sprite {
 
   constructor(sprite_data: SpriteData) {
     // Set properties
-    const {id, x, y, w, mirrored, spritesheet_rect: spritesheet_rects, frame_duration, data} = sprite_data;
+    const {id, x, y, w, mirrored, spritesheet_rects, frame_duration, data} = sprite_data;
     this.id = id || ranInt(100) + '';
     this.data = data; 
 
@@ -46,14 +36,16 @@ export default class Sprite {
     this.x = x * pixel_size;
     this.y = y * pixel_size;
     this.w = w * pixel_size;
-    const rendered_scale_ratio = this.w / first_frame_rect.w; 
-    const sprite_aspect = first_frame_rect.h / first_frame_rect.w;
+
+    const rendered_scale_ratio = this.w / first_frame_rect['w']; 
+    const sprite_aspect = first_frame_rect['h'] / first_frame_rect['w'];
     this.h = this.w * sprite_aspect; // Maintain aspect ratio
 
     // Create a canvas for each frame, if animating
-    const frame_canvases_ctxs: [HTMLCanvasElement, CanvasRenderingContext2D][] = spritesheet_rects.map(spritesheet_rect => {
+    const frame_canvases_ctxs: [HTMLCanvasElement, CanvasRenderingContext2D][] = spritesheet_rects.map(rect => {
       // Create canvas
-      const [canvas, ctx] = canvasFromSpritesheet(spritesheet_rect);
+      const [canvas, ctx] = canvasFromSpritesheet(rect);
+      document.body.append(canvas);
   
       // If mirrored, duplicate base canvas
       if(mirrored) {
@@ -64,10 +56,10 @@ export default class Sprite {
       }
   
       // Draw Image Params
-      const source_x = spritesheet_rect.x;
-      const source_y = spritesheet_rect.y;
-      const source_w = spritesheet_rect.w;
-      const source_h = spritesheet_rect.h;
+      const source_x = rect['x'];
+      const source_y = rect['y'];
+      const source_w = rect['w'];
+      const source_h = rect['h'];
   
       // Draw mirrored
       if(sprite_data.mirrored) {
@@ -98,7 +90,6 @@ export default class Sprite {
 
   // 
   render(main_ctx: CanvasRenderingContext2D) {
-    debugLog(this.active_canvas);
     main_ctx.drawImage(this.active_canvas, this.x, this.y, this.w, this.h);
   }
 }

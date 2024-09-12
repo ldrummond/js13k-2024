@@ -1,6 +1,6 @@
 import { globals, grid_col, grid_row, panel_top_row, pixel_size, Resources, violin_note_frequencies, violin_num_notes, violin_num_octaves } from "@/core/constants";
 import { GameEntity } from "@/core/game-entity";
-import { spritesheet } from "@/spritesheet";
+import { spritesheet_data } from "@/data/spritesheet-data";
 import { GameEntityState, GameEntityParams } from "@/core/game-entity";
 import { playViolinSound } from "@/core/game-audio";
 import { arrFull, percentOfRange, ranInt } from "@/core/utils";
@@ -39,7 +39,8 @@ const organs: GameEntityParams[] = [
       x: organ_x + 25,
       y: organ_y + 5,
       w: 19,
-      spritesheet_rect: [spritesheet.eye]
+      spritesheet_rects: [spritesheet_data['eye']]
+      // For some reason, these names HAVE to be string index, not dot notation, for compilation
     },
   },
   {
@@ -61,7 +62,7 @@ const organs: GameEntityParams[] = [
       x: organ_x + 30,
       y: organ_y + 50,
       w: 10,
-      spritesheet_rect: [spritesheet.pituitary]
+      spritesheet_rects: [spritesheet_data['pituitary']]
     },
   },
   {
@@ -83,7 +84,7 @@ const organs: GameEntityParams[] = [
       x: organ_x + 5,
       y: organ_y + 72,
       w: 16,
-      spritesheet_rect: [spritesheet.kidney]
+      spritesheet_rects: [spritesheet_data['kidney']]
     },
   },
   {
@@ -100,7 +101,7 @@ const organs: GameEntityParams[] = [
       x: organ_x + 23,
       y: organ_y + 27,
       w: 23,
-      spritesheet_rect: [spritesheet.brain]
+      spritesheet_rects: [spritesheet_data['brain']]
     },
   },
   {
@@ -117,7 +118,7 @@ const organs: GameEntityParams[] = [
       x: organ_x + 24,
       y: organ_y + 68,
       w: 24,
-      spritesheet_rect: [spritesheet.lungs]
+      spritesheet_rects: [spritesheet_data['lungs']]
     },
   },
   {
@@ -134,7 +135,7 @@ const organs: GameEntityParams[] = [
       x: organ_x + 53,
       y: organ_y + 74,
       w: 11.5,
-      spritesheet_rect: [spritesheet.bone]
+      spritesheet_rects: [spritesheet_data['bone']]
     },
   },
   {
@@ -155,7 +156,7 @@ const organs: GameEntityParams[] = [
       y: organ_y + 49,
       w: 20,
       mirrored: 17,
-      spritesheet_rect: [spritesheet.claw]
+      spritesheet_rects: [spritesheet_data['claw']]
     },
   },
   {
@@ -176,7 +177,7 @@ const organs: GameEntityParams[] = [
       y: organ_y + 8,
       w: 14,
       mirrored: 20,
-      spritesheet_rect: [spritesheet.horn,]
+      spritesheet_rects: [spritesheet_data['horn'],]
     },
   },
   {
@@ -194,7 +195,7 @@ const organs: GameEntityParams[] = [
       y: organ_y + 129,
       w: 17,
       mirrored: 15,
-      spritesheet_rect: [spritesheet.foot]
+      spritesheet_rects: [spritesheet_data['foot']]
     },
   },
   {
@@ -211,7 +212,7 @@ const organs: GameEntityParams[] = [
       x: organ_x + 4,
       y: organ_y + 99,
       w: 39,
-      spritesheet_rect: [spritesheet.tail]
+      spritesheet_rects: [spritesheet_data['tail']]
     },
   },
 ];
@@ -224,7 +225,6 @@ let note_buttons: GameEntityParams[] = [];
 const notes_width = 70;
 const notes_height = 30;
 const default_notes = arrFull(violin_num_notes).map(() => ranInt(violin_num_notes - 1));
-console.log(default_notes);
 
 // 
 for (let r = 0; r < violin_num_octaves; r++) {
@@ -250,10 +250,10 @@ for (let r = 0; r < violin_num_octaves; r++) {
       },
       sprite_data: {
         id: 'note',
-        x: 212 + percentOfRange(c_percent, 0, notes_width),
+        x: 213 + percentOfRange(c_percent, 0, notes_width),
         y: violin_y + percentOfRange(r_percent, -1, notes_height),
         w: 9,
-        spritesheet_rect: [spritesheet.note],
+        spritesheet_rects: [spritesheet_data['note']],
         data: {
           c,
           r,
@@ -298,7 +298,7 @@ const music = [
       x: 180,
       y: violin_y,
       w: 25,
-      spritesheet_rect: [spritesheet.violin]
+      spritesheet_rects: [spritesheet_data['violin']]
     },
   },
   // Notes
@@ -323,7 +323,7 @@ const books = [
       x: book_x + book_space * 0,
       y: book_y,
       w: book_w,
-      spritesheet_rect: [spritesheet.book1]
+      spritesheet_rects: [spritesheet_data['book1']]
     },
   },
   {
@@ -340,7 +340,7 @@ const books = [
       x: book_x + book_space * 1,
       y: book_y,
       w: book_w,
-      spritesheet_rect: [spritesheet.book2]
+      spritesheet_rects: [spritesheet_data['book2']]
     },
   },
   {
@@ -357,7 +357,7 @@ const books = [
       x: book_x + book_space * 2,
       y: book_y,
       w: book_w,
-      spritesheet_rect: [spritesheet.book3]
+      spritesheet_rects: [spritesheet_data['book3']]
     },
   },
   {
@@ -374,7 +374,7 @@ const books = [
       x: book_x + book_space * 3 - 1,
       y: book_y,
       w: book_w + 2,
-      spritesheet_rect: [spritesheet.book5]
+      spritesheet_rects: [spritesheet_data['book5']]
     },
   },
   // Volume buttons
@@ -389,7 +389,7 @@ const books = [
       x: 276,
       y: 10,
       w: 10,
-      spritesheet_rect: [spritesheet.iconPlaying, spritesheet.iconMuted]
+      spritesheet_rects: [spritesheet_data['iconPlaying'], spritesheet_data['iconMuted']]
     },
   },
 ];

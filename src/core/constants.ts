@@ -29,7 +29,7 @@ Array.prototype.removeElement = function<T>(e: T): void {
 };
 
 // Resources
-export enum Resources {
+export const enum Resources {
   "HORMONES",
   "CONFIDENCE",
   "MATURITY",
@@ -39,11 +39,11 @@ export enum Resources {
 // Colors
 // TODO: HSL or RGB, probably RBG
 export const hsl_offblack: hsl = [0,0,1];
-export const hsl_grey: hsl = [0, 0, 10];
+export const hsl_grey: hsl = [0, 0, 19];
 export const hsl_white: hsl = [0, 0, 20];
 export const hsl_red: hsl = [9,70,20];
 export const hsl_darkred: hsl = [8,65,15];
-export const hsl_lightgrey: hsl = [0,0,20];
+export const hsl_lightgrey: hsl = [0,0,28];
 export const hsl_blue: hsl = [230, 80, 40];
 
 export const rgb_lightgrey: rgb = [50,50,50];
@@ -57,6 +57,7 @@ export const sprite_border_color: rgb = rgb_brown;
 export const sprite_border_hover_color: rgb = [180,49,67];
 
 // Define Constants
+// export const fps = 50;
 export const fps = 50;
 export const interval = 1000 / fps; 
 export const pi = 3.14;
@@ -66,8 +67,9 @@ export const click_offset = 2;
 export const click_duration = 160;
 export const tooltip_timeout = 222;
 export const dpr = window.devicePixelRatio || 1;
-export const window_width = window.innerWidth || 1;
-export const window_height = window.innerHeight || 1;
+export const window_width = window.innerWidth;
+export const window_height = window.innerHeight;
+
 export const violin_num_notes = 6;
 export const violin_num_octaves = 6;
 export const violin_note_frequencies: { [key: number]: number } = [

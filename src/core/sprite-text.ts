@@ -1,7 +1,6 @@
-import { spritesheet } from "@/spritesheet";
-import { canvasFromSpritesheet } from "./sprite";
+import { spritesheet_data } from "@/data/spritesheet-data";
 import { pixel_size, rgb_white } from "./constants";
-import { debugLog, dupeCanvas, replaceColor } from "./utils";
+import {  dupeCanvas, replaceColor, canvasFromSpritesheet } from "./utils";
 
 /**
  * Char Codes
@@ -42,14 +41,19 @@ let init = false;
 
 //
 class SpriteText {
-  spritesheet_text_canvas?: HTMLCanvasElement;
+  spritesheet_text_canvas?: HTMLCanvasElement = document.createElement("canvas");
   spritesheet_text_ctx?: CanvasRenderingContext2D;
   color_canvases: {[key: string]: HTMLCanvasElement} = {};
 
+  constructor() {
+  }
+
   init() {
-    const [spritesheet_text_canvas, spritesheet_text_ctx] = canvasFromSpritesheet(spritesheet.textAlt);
-    this.spritesheet_text_canvas = spritesheet_text_canvas;
-    this.spritesheet_text_ctx = spritesheet_text_ctx;
+    console.log('Sprite Text Init Src: ', spritesheet_data['textAlt']);
+    const [canvas, ctx] = canvasFromSpritesheet(spritesheet_data['textAlt']);
+    console.log('Sprite Text Init: ', spritesheet_data['textAlt'], canvas.width, canvas.height);
+    this.spritesheet_text_canvas = canvas;
+    this.spritesheet_text_ctx = ctx;
   }
 
   /**
@@ -64,11 +68,6 @@ class SpriteText {
    * @returns 
    */
   fillText(ctx: CanvasRenderingContext2D, text: string, x: number = 0, y: number = 0, size: number = 10, char_space: number = 0.3, color?: rgb, char_delay?: number): number {
-    if(!init) {
-      this.init(); 
-      init = true;
-    }
-    
     text = text.toUpperCase();
     x *= pixel_size;
     y *= pixel_size;
@@ -76,7 +75,7 @@ class SpriteText {
     const space = char_space * size; 
     
     // Allow for recoloring text
-    let canvas = this.spritesheet_text_canvas!;
+    let canvas = this.spritesheet_text_canvas;
     if(color) canvas = this.getColorCanvas(color);
 
     let offset = 0; 
@@ -107,7 +106,6 @@ class SpriteText {
       const dest_w = size;
       const dest_h = size * char_height / char_width;
 
-      debugLog(canvas);
       const drawFn = () => ctx.drawImage(canvas!, 
         source_x, 
         source_y, 
@@ -118,8 +116,8 @@ class SpriteText {
         dest_w, 
         dest_h
       );
-      if(char_delay) setTimeout(drawFn, char_delay * i);
-      else drawFn();
+      // if(char_delay) setTimeout(drawFn, char_delay * i);
+      drawFn();
 
       // Use offset for line length
       offset += size + space;
@@ -134,8 +132,10 @@ class SpriteText {
    * @returns 
    */
   getColorCanvas(color: rgb): HTMLCanvasElement {
-    const color_key = color.toString();
+    const color_key = "" + color[0] + color[1] + color[2];
     if(this.color_canvases[color_key]) return this.color_canvases[color_key];
+    if(!this.spritesheet_text_canvas?.width) console.log('Canvas not defined yet');
+    console.log('GetColorCanvas:', this.spritesheet_text_canvas, this.spritesheet_text_canvas?.width, this.spritesheet_text_canvas?.height);
     const [color_canvas, color_ctx] = dupeCanvas(this.spritesheet_text_canvas!);
     replaceColor(color_canvas!, color_ctx, rgb_white, color);
     this.color_canvases[color_key] = color_canvas;

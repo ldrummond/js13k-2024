@@ -1,4 +1,4 @@
-const { exec } = require('node:child_process');
+const { exec, execSync, spawn, spawnSync } = require('node:child_process');
 const readline = require('readline');
 const fs = require('fs');
 
@@ -16,11 +16,27 @@ const cliToApiMaps = [
   { cli: '-Zdy', api: 'dynamicModels', type: 'number' },
   { cli: '-Zco', api: 'contextBits', type: 'number' },
   { cli: '-S', api: 'sparseSelectors', type: 'array' }
-]
+];
 
 rl.question('How many seconds should RoadRoller spend looking for the best config? ', seconds => {
   console.log('Building...');
-  exec('vite build', () => {
+
+  // Replace 'your-command' with the command you want to execute and its arguments
+  const child = spawn('vite', ['build']); // Example: spawn('ls', ['-la'])
+
+  child.stdout.on('data', (data) => {
+    console.log(`${data}`);
+  });
+
+  child.stderr.on('data', (data) => {
+    console.error(`Error: ${data}`);
+  });
+
+  child.on('close', (code) => {
+    console.log(`Child process exited with code ${code}`);
+    
+    console.log('Building Complete:');
+      
     console.log(`Spending ${seconds} seconds searching for config...`);
     exec(`node node_modules/roadroller/cli.mjs ${__dirname}/dist/output.js -D -OO`, { timeout: seconds * 1000, killSignal: 'SIGINT', maxBuffer: 4069 * 1024 }, (error, stdout, stderr) => {
       const bestConfigJs = { allowFreeVars: true };
@@ -33,13 +49,14 @@ rl.question('How many seconds should RoadRoller spend looking for the best confi
           if (singleParam.startsWith(mapper.cli) && mapper.type !== 'unused') {
             bestConfigJs[mapper.api] = convertValue(mapper, singleParam);
           }
-        })
+        });
       });
       fs.writeFileSync(`${__dirname}/roadroller-config.json`, JSON.stringify(bestConfigJs, null, 2));
       console.log(`BEST CONFIG: ${bestConfigConsole}`);
       process.exit(0);
     });
-  })
+  });
+
 });
 
 function convertValue(mapper, cliSetting) {

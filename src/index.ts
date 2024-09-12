@@ -1,30 +1,39 @@
-import { container_height, container_width, globals, interval, loading_canvas, loading_ctx, main_ctx, spritesheet_img } from './core/constants';
-import { GameLogic } from './core/game-logic';
+import { container_height, container_width, globals, interval, loading_canvas, loading_ctx, main_ctx, resource_list, spritesheet_img } from './core/constants';
 import { GameEntity } from './core/game-entity';
 import { UIText } from './core/ui-text';
 import Sprite from './core/sprite';
 import { hitmaskUpdate } from './core/hitmask';
-import { CanvasController } from './core/canvas-controller';
-import { game_entities_data_list } from './data/game-entities';
-import { sprite_data_list } from './data/sprites';
+import { game_entities_data_list } from './data/game-entities-data';
+import { sprite_data_list } from './data/sprites-data';
 import { Animator } from './core/animator';
+import { renderBackground } from './core/background';
+import { sprite_text } from './core/sprite-text';
 
 // Load Main Spritesheet
+// spritesheet_img.crossOrigin = "Anonymous";
 spritesheet_img.onload = spritesheetLoaded;
 const skip_loading = true; 
 
+console.log("Load Spritesheet", spritesheet_img);
 /**
  * Load spritesheet first
  */
 function spritesheetLoaded() {
   // Add Loading Text
   // sprite_text.fillText(loading_ctx, 'start puberty', window_width / 2, window_height / 2 - 30, 2, undefined, rgb_gold);
+  console.log("On Loaded Spritesheet");
+
+  main_ctx.fillStyle = 'blue';
+  main_ctx.fillRect(0, 0, 100, 100);
+  main_ctx.drawImage(spritesheet_img, 0, 0, 100, 100, 0, 0, 100, 100);
 
   // 
   // Initialize everything
   // 
-  const canvas_controller = new CanvasController();
-  const game_logic = new GameLogic();
+  sprite_text.init();
+  renderBackground();
+  console.log("Rendered Background");
+  
   const ui_text = new UIText();
   sprite_data_list.map(d => globals.sprites.push(new Sprite(d)));
   game_entities_data_list.map(d => globals.game_entities.push(new GameEntity(d)));
@@ -35,6 +44,8 @@ function spritesheetLoaded() {
     globals.mousepos.y = e.y;
   });
   
+  console.log("After Initialized");
+
   // 
   // Remove loader and get ready to start
   // 
@@ -47,10 +58,13 @@ function spritesheetLoaded() {
     start_button.addEventListener("click", start);
   }
 
+
   /**
    * Start Game Loop
    */
   function start() {
+    console.log("Start Function");
+
     // 
     start_button.remove();
     const steps = skip_loading ? 1 : 40;
@@ -95,11 +109,7 @@ function spritesheetLoaded() {
         // CLEAR CANVAS
         // 
         main_ctx.clearRect(0, 0, container_width, container_height);
-
-
-        // DEBUG
-        // sprite_text.fillText(main_ctx, "ABCDEFGHIJKLMNOPQRSTUVWXYZ. Hello! 0123456789+5.5/10", 0, 0, 4, 0.1);
-
+  
         // 
         // UPDATE AND RENDER
         // 
@@ -114,8 +124,11 @@ function spritesheetLoaded() {
         globals.sprites.map(s => s.render(main_ctx));
 
         // Update logic for resource quantity
-        game_logic.onUpdate(delta);
-
+        resource_list.map(resource => {
+          resource.quantity += (resource.increase_per_second * delta / 1000);
+          if(resource.quantity > resource.limit) resource.quantity = resource.limit; 
+        });
+        
         // Update all entities
         globals.game_entities.map((entity: GameEntity) => {
           entity.onUpdate();
@@ -131,7 +144,6 @@ function spritesheetLoaded() {
         hitmaskUpdate();
 
         // Render Cycle
-
       }
 
       requestAnimationFrame(draw);

@@ -1,13 +1,7 @@
 
 // Functions
 
-import { pixel_size } from "./constants";
-
-/** */
-export function debugLog(canvas: HTMLCanvasElement, text?: string) {
-  // console.log(canvas.width, canvas.height, canvas.width === 0, canvas.height === 0);
-  // console.log(text);
-}
+import { base_canvas, pixel_size, spritesheet_img } from "./constants";
 
 export function percentOfRange(percent: number, lower_bound: number, upper_bound: number): number {
   return lower_bound + (percent) * (upper_bound - lower_bound);
@@ -40,7 +34,6 @@ export function ranHSL(hsl: hsl, variance: number = 10) {
 export function dupeCanvas(canvas: HTMLCanvasElement): [HTMLCanvasElement, CanvasRenderingContext2D] {
   const new_canvas = canvas.cloneNode() as HTMLCanvasElement;
   const new_ctx = new_canvas.getContext('2d')!;
-  debugLog(canvas);
   new_ctx.drawImage(canvas,0,0);
   new_ctx.imageSmoothingEnabled = false; 
   return [new_canvas, new_ctx];
@@ -118,6 +111,28 @@ export function fillRectWithRandom(
   }
 }
 
+/**
+ * 
+ * @param rect 
+ * @param canvas_width 
+ * @param canvas_height 
+ * @returns 
+ */
+export function canvasFromSpritesheet(rect: Rect, cw?: number, ch?: number): [HTMLCanvasElement, CanvasRenderingContext2D] {
+  console.log('Sprite Text Init Src: INNER: ', rect);
+  console.log('canvas from spritesheet', rect, base_canvas.width, base_canvas.height, cw, ch);
+  
+  const [canvas,ctx] = dupeCanvas(base_canvas);
+
+  const w = typeof cw === 'number' ? cw : rect['w'];
+  const h = typeof ch === 'number' ? ch : rect['h'];
+  canvas.width = w;
+  canvas.height = h;
+  
+  ctx.drawImage(spritesheet_img, rect['x'], rect['y'], rect['w'], rect['h'], 0, 0, w, h);
+  return [canvas, ctx];
+}
+
 // /**
 //  * 
 //  */
@@ -157,29 +172,4 @@ export function fillRectWithRandom(
 //       } else if(r < 1)
 //     }
 //   }
-// }
-
-// 
-// 
-// export function createPattern(
-//   w: number = 10, 
-//   h: number = 10, 
-//   hsl: hsl,
-//   variance?: number,
-// ): CanvasPattern {
-
-//   const [canvas, ctx] = dupeCanvas(base_canvas);
-//   canvas.width = w;
-//   canvas.height = h;
-//   canvas.style.imageRendering = 'pixelated';
-
-//   // TODO: Combine these two?
-//   for (let c = 0; c < w; c++) {
-//     for (let r = 0; r < h; r++) {
-//       ctx.fillStyle = ranHSL(hsl, Math.random() > 0.8 ? variance : 0);
-//       ctx.fillRect(c, r, 1, 1); 
-//     }
-//   }
-
-//   return ctx.createPattern(canvas, "repeat")!;
 // }

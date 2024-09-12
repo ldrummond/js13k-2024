@@ -1,5 +1,4 @@
 import { confidence, hormones, knowledge, maturity } from "./core/constants";
-import { game_data } from "./core/game-logic";
 import { State } from "./core/state";
 
 export default class DebugPanel implements State {

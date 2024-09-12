@@ -1,10 +1,10 @@
 import { click_duration, click_offset, confidence, createResourceTooltip, globals, hormones, knowledge, maturity, resource_map, Resources, sprite_border_color, sprite_border_hover_color, tooltip_timeout } from "./constants";
 import Sprite from "./sprite";
-import { debugLog, dupeCanvas, ranRGB, replaceColor } from "./utils";
+import {  dupeCanvas, ranRGB, replaceColor } from "./utils";
 import { addToHitmask } from "./hitmask";
 import { SpriteData } from "@/core/sprite";
 
-export enum GameEntityState {
+export const enum GameEntityState {
   "LOCKED",
   "AVAILABLE",
   "FLASHING",
@@ -128,7 +128,6 @@ export class GameEntity extends Sprite {
 
       // Mask out the sprite
       temp_ctx.globalCompositeOperation = "destination-in";
-      debugLog(canvas);
       temp_ctx.drawImage(canvas, 0, 0);
 
       // Send to hitmask
@@ -139,6 +138,7 @@ export class GameEntity extends Sprite {
       // Redraw the sprite
       temp_ctx.globalCompositeOperation = "source-atop";
       temp_ctx.drawImage(canvas, 0, 0);
+      document.body.append(canvas);
 
       // 
       // HOVER LAYER
@@ -146,6 +146,7 @@ export class GameEntity extends Sprite {
       replaceColor(temp_canvas, temp_ctx, sprite_border_color, sprite_border_hover_color);
       interactive_canvases.hover_canvas = dupeCanvas(temp_canvas)[0];
       replaceColor(temp_canvas, temp_ctx, sprite_border_hover_color, sprite_border_color);
+      document.body.append(interactive_canvases.hover_canvas);
       // 
 
       // 
@@ -157,6 +158,7 @@ export class GameEntity extends Sprite {
       
       // Duplicate canvas to darkgrey
       interactive_canvases.cooldown_canvas = dupeCanvas(temp_canvas)[0];
+      document.body.append(interactive_canvases.cooldown_canvas);
 
       // 
       // LOCKED LAYER
@@ -167,6 +169,7 @@ export class GameEntity extends Sprite {
 
       // Duplicate canvas to black
       interactive_canvases.locked_canvas = dupeCanvas(temp_canvas)[0];
+      document.body.append(interactive_canvases.locked_canvas);
       // 
 
       // Redraw the sprite
@@ -315,7 +318,6 @@ export class GameEntity extends Sprite {
       canvas_to_render = this.active_interactive_canvases.hover_canvas;
     }
 
-    debugLog(canvas_to_render);
     ctx.drawImage(canvas_to_render, 0, 0, cw, ch, this.x, y, this.w, h);
   }
 }
