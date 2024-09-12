@@ -6,8 +6,8 @@ const icon_width = 10;
 
 export const sprite_data_list: SpriteData[] = [
   {
-    x: (grid_col(22) - 4) / pixel_size,
-    y: (panel_top_row + 20) / pixel_size,
+    x: (grid_col(22) - 2) / pixel_size,
+    y: (panel_top_row + 45) / pixel_size,
     w: 10,
     spritesheet_rects: [spritesheet_data['minion']]
   },

@@ -1,8 +1,8 @@
 import { dpr, globals, hitmask_canvas, container } from "./constants";
 
 const hitmask_ctx = hitmask_canvas.getContext('2d', {willReadFrequently: true})!;
-const hitmask_rect = hitmask_canvas.getBoundingClientRect();
 hitmask_ctx.scale(dpr, dpr);
+let hitmask_rect = hitmask_canvas.getBoundingClientRect();
 
 // TODO: Remove
 // hitmask_canvas.id = 'hitmask';
@@ -16,6 +16,7 @@ hitmask_canvas.style.opacity = "0";
 export function addToHitmask(canvas: HTMLCanvasElement, x: number, y: number, w: number, h: number) {
   console.log('Add to hitmask');
   hitmask_ctx.drawImage(canvas, x, y, w, h);
+  hitmask_rect = hitmask_canvas.getBoundingClientRect();
 }
 
 export function hitmaskUpdate() {

@@ -69,6 +69,10 @@ export function roundToPixel(v: number) {
   return Math.ceil(v / pixel_size) * pixel_size;
 }
 
+export function pointInRect(x: number, y: number, r: Rect) {
+  return x > r['x'] && x < (r['x'] + r['w']) && y > r['y'] && y < (r['y'] + r['h']);
+}
+
 // 
 // 
 export function fillRectWithRandom(
@@ -80,12 +84,14 @@ export function fillRectWithRandom(
   hsl: hsl,
   variance = 12,
   border_width?: number,
+  border_inset?: number,
   pixel_size_overrite?: number
 ) {
   const pixel_size_to_use = pixel_size_overrite || pixel_size; 
   const pixel_count_w = Math.ceil(w / pixel_size_to_use);
   const pixel_count_h = Math.ceil(h / pixel_size_to_use);
-  const border_pixel_size = (border_width || 1) / pixel_size_to_use; 
+  const border_pixel_size = (border_width || 1); 
+  const border_inset_pixel_size = border_inset ? (border_inset || 1) : 0;
 
   // If border width, only fill for border
   const no_border = !border_width;
@@ -97,7 +103,8 @@ export function fillRectWithRandom(
   for (let c = 0; c <= pixel_count_w; c++) {
     for(let r = 0; r <= pixel_count_h; r++) {
       const within_border = c <= border_pixel_size || c >= pixel_count_w - border_pixel_size || r <= border_pixel_size || r >= pixel_count_h - border_pixel_size;
-      if(no_border || within_border) {
+      const within_inset = c >= border_inset_pixel_size && c <= pixel_count_w - border_inset_pixel_size && r >= border_inset_pixel_size && r <= pixel_count_h - border_inset_pixel_size;
+      if(no_border || (within_border && within_inset)) {
         const rand = Math.random() > 0.75;
         let vari = variance;
         if(border_width) {vari = (rand ? variance : 0);}

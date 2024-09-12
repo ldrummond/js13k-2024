@@ -1,4 +1,4 @@
-import { container_height, container_width, globals, interval, loading_canvas, loading_ctx, main_ctx, resource_list, spritesheet_img } from './core/constants';
+import { char_border_inset, char_h, char_w, char_x, char_y, container_height, container_width, globals, hsl_darkred, hsl_offblack, interval, loading_canvas, loading_ctx, main_ctx, minion_lines, resource_list, spritesheet_img } from './core/constants';
 import { GameEntity } from './core/game-entity';
 import { UIText } from './core/ui-text';
 import Sprite from './core/sprite';
@@ -8,6 +8,7 @@ import { sprite_data_list } from './data/sprites-data';
 import { Animator } from './core/animator';
 import { renderBackground } from './core/background';
 import { sprite_text } from './core/sprite-text';
+import { ranHSL } from './core/utils';
 
 // Load Main Spritesheet
 // spritesheet_img.crossOrigin = "Anonymous";
@@ -22,10 +23,6 @@ function spritesheetLoaded() {
   // Add Loading Text
   // sprite_text.fillText(loading_ctx, 'start puberty', window_width / 2, window_height / 2 - 30, 2, undefined, rgb_gold);
   console.log("On Loaded Spritesheet");
-
-  main_ctx.fillStyle = 'blue';
-  main_ctx.fillRect(0, 0, 100, 100);
-  main_ctx.drawImage(spritesheet_img, 0, 0, 100, 100, 0, 0, 100, 100);
 
   // 
   // Initialize everything
@@ -58,6 +55,21 @@ function spritesheetLoaded() {
     start_button.addEventListener("click", start);
   }
 
+  // 
+  // Draw character foreground mask
+  // 
+  const char_grad = main_ctx.createLinearGradient(char_x + char_border_inset, char_y + char_border_inset, char_w - char_border_inset * 2, char_h - char_border_inset * 2);
+  char_grad.addColorStop(0, ranHSL(hsl_offblack, 0));
+  char_grad.addColorStop(1, ranHSL(hsl_darkred, 0));
+  // 
+  function drawCharacterGradientMask() {
+    main_ctx.fillStyle = char_grad;
+    main_ctx.globalCompositeOperation = 'darken';
+    main_ctx.globalAlpha = 0.6;
+    main_ctx.fillRect(char_x + char_border_inset + 2, char_y + char_border_inset + 2, char_w - char_border_inset * 2, char_h - char_border_inset * 2);
+    main_ctx.globalCompositeOperation = 'source-over';
+    main_ctx.globalAlpha = 1;
+  }  
 
   /**
    * Start Game Loop
@@ -73,7 +85,15 @@ function spritesheetLoaded() {
     new Animator(100, steps, undefined, (repeats_left: number) => {
       const step_percent = 1 - (repeats_left / steps); 
       loading_ctx.clearRect(0, 0, loading_canvas.width, loading_canvas.height * step_percent);
-      if(repeats_left == 1) loading_canvas.remove();
+      if(repeats_left == 1) {
+        globals.minion_text = minion_lines['start'];
+
+        setTimeout(() => {
+          globals.minion_text = minion_lines['encourage'];
+        }, 7000);
+
+        loading_canvas.remove();
+      }
     });
 
     // Add custom cursor
@@ -139,6 +159,9 @@ function spritesheetLoaded() {
         globals.animators.map(animator => {
           animator.onUpdate(delta);
         });
+
+        // Draw mask
+        drawCharacterGradientMask();
 
         // Update the hitmask to check collisions
         hitmaskUpdate();

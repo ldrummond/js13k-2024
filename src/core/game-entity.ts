@@ -138,7 +138,7 @@ export class GameEntity extends Sprite {
       // Redraw the sprite
       temp_ctx.globalCompositeOperation = "source-atop";
       temp_ctx.drawImage(canvas, 0, 0);
-      document.body.append(canvas);
+      // document.body.append(canvas);
 
       // 
       // HOVER LAYER
@@ -146,7 +146,7 @@ export class GameEntity extends Sprite {
       replaceColor(temp_canvas, temp_ctx, sprite_border_color, sprite_border_hover_color);
       interactive_canvases.hover_canvas = dupeCanvas(temp_canvas)[0];
       replaceColor(temp_canvas, temp_ctx, sprite_border_hover_color, sprite_border_color);
-      document.body.append(interactive_canvases.hover_canvas);
+      // document.body.append(interactive_canvases.hover_canvas);
       // 
 
       // 
@@ -158,7 +158,7 @@ export class GameEntity extends Sprite {
       
       // Duplicate canvas to darkgrey
       interactive_canvases.cooldown_canvas = dupeCanvas(temp_canvas)[0];
-      document.body.append(interactive_canvases.cooldown_canvas);
+      // document.body.append(interactive_canvases.cooldown_canvas);
 
       // 
       // LOCKED LAYER
@@ -169,7 +169,7 @@ export class GameEntity extends Sprite {
 
       // Duplicate canvas to black
       interactive_canvases.locked_canvas = dupeCanvas(temp_canvas)[0];
-      document.body.append(interactive_canvases.locked_canvas);
+      // document.body.append(interactive_canvases.locked_canvas);
       // 
 
       // Redraw the sprite

@@ -12,7 +12,7 @@ const organ_y = (panel_top_row) / pixel_size;
 const violin_y = (panel_top_row + grid_row(4.1)) / pixel_size;
 
 const book_x = 183;
-const book_y = (panel_top_row + grid_row(11)) / pixel_size;
+const book_y = (panel_top_row + grid_row(11.2)) / pixel_size;
 const book_w = 17;
 const book_space = 27;
 
@@ -223,8 +223,9 @@ const organs: GameEntityParams[] = [
 
 let note_buttons: GameEntityParams[] = [];
 const notes_width = 70;
-const notes_height = 30;
+const notes_height = 29;
 const default_notes = arrFull(violin_num_notes).map(() => ranInt(violin_num_notes - 1));
+const note_length = 400;
 
 // 
 for (let r = 0; r < violin_num_octaves; r++) {
@@ -251,7 +252,7 @@ for (let r = 0; r < violin_num_octaves; r++) {
       sprite_data: {
         id: 'note',
         x: 213 + percentOfRange(c_percent, 0, notes_width),
-        y: violin_y + percentOfRange(r_percent, -1, notes_height),
+        y: violin_y + percentOfRange(r_percent, 1, notes_height),
         w: 9,
         spritesheet_rects: [spritesheet_data['note']],
         data: {
@@ -264,7 +265,6 @@ for (let r = 0; r < violin_num_octaves; r++) {
   }  
 }
 
-const note_length = 300;
 const music = [ 
   {
     name: "violin",
@@ -386,8 +386,8 @@ const books = [
       self.active_interactive_canvases = self.sprite_frames_interactive_canvases.next();
     },
     sprite_data: {
-      x: 276,
-      y: 10,
+      x: 280,
+      y: 7,
       w: 10,
       spritesheet_rects: [spritesheet_data['iconPlaying'], spritesheet_data['iconMuted']]
     },

@@ -3,21 +3,30 @@ import {
   container_height,
   pixel_size,
   hsl_grey,
-  hsl_offblack,
   hsl_darkred,
   main_canvas,
   dpr,
   container,
-  hsl_lightgrey,
   window_width,
   window_height,
   base_canvas,
   grid_row,
   grid_col,
   panel_top_row,
-  hsl_white,
   violin_num_octaves,
-  rgb_offblack,
+  rgb_lightgrey,
+  hsl_darkgreen,
+  hsl_offblack,
+  char_x,
+  char_y,
+  char_border_inset,
+  char_h,
+  char_w,
+  hsl_lightgrey,
+  minion_x,
+  minion_y,
+  minion_width,
+  minion_height,
 } from "./constants";
 import { sprite_text } from "./sprite-text";
 import { dupeCanvas, fillRectWithRandom, ranHSL } from "./utils";
@@ -40,8 +49,7 @@ export function renderBackground() {
   container.prepend(stage_background_canvas);
 
   // Draw Background Layer
-  fillRectWithRandom(stage_background_ctx, 0, 0, container_width, container_height, hsl_offblack);
-
+  fillRectWithRandom(stage_background_ctx, 0, 0, container_width, container_height, hsl_darkgreen, 8);
 
   // 
   // ORGANS PANEL
@@ -52,14 +60,11 @@ export function renderBackground() {
   const panel1_height = grid_row(16);
   fillRectWithRandom(stage_background_ctx, panel1_x, panel1_y, panel1_width, panel1_height, hsl_grey, 6);
   fillRectWithRandom(stage_background_ctx, panel1_x, panel1_y, panel1_width, panel1_height, hsl_grey, 20, 2);
+  // fillRectWithRandom(stage_background_ctx, panel1_x, panel1_y, panel1_width, panel1_height, hsl_darkgreen, 20, 12, 11);
 
   // 
   // MINION PANEL
   // 
-  const minion_x = grid_col(14);
-  const minion_y = panel_top_row; 
-  const minion_width = grid_col(9);
-  const minion_height = grid_row(2.75);
   fillRectWithRandom(stage_background_ctx, minion_x, minion_y, minion_width, minion_height, hsl_grey, 5);
   // fillRectWithRandom(stage_background_ctx, minion_x, minion_y, minion_width, minion_height, hsl_darkred, 5, 0.5);
 
@@ -69,23 +74,17 @@ export function renderBackground() {
   const panel2_x = grid_col(14);
   const panel2_y = panel_top_row + grid_row(3.5); 
   const panel2_width = grid_col(9);
-  const panel2_height = grid_row(5.75);
-  const panel_border_inset = 3 * pixel_size;
-  // 
-  // const panel2_border_x = panel2_x + panel_border_inset;
-  // const panel2_border_y = panel2_y + panel_border_inset; 
-  // const panel2_border_width = panel2_width - panel_border_inset * 2;
-  // const panel2_border_height = panel2_height - panel_border_inset * 2;
-
-  fillRectWithRandom(stage_background_ctx, panel2_x, panel2_y, panel2_width, panel2_height, hsl_grey, 5);
-  // fillRectWithRandom(stage_background_ctx, panel2_border_x, panel2_border_y, panel2_border_width, panel2_border_height, hsl_lightgrey, 20, 2);
-  sprite_text.fillText(stage_background_ctx, "THE BAND", panel2_x * 1.22 / pixel_size, (panel2_y + panel2_height) * .9 / pixel_size, 5, 0.84, rgb_offblack);
+  const panel2_height = grid_row(6);
+ 
+  fillRectWithRandom(stage_background_ctx, panel2_x, panel2_y, panel2_width, panel2_height, hsl_grey, 8);
+  fillRectWithRandom(stage_background_ctx, panel2_x, panel2_y, panel2_width, panel2_height, hsl_darkgreen, 25, 1, 1);
+  sprite_text.fillText(stage_background_ctx, "The Band", panel2_x * 1.22 / pixel_size, (panel2_y + panel2_height) * .88 / pixel_size, 5, 0.83, undefined, rgb_lightgrey);
   
   const violin_octaves_height = 30 * pixel_size;
 
   for (let i = 1; i < violin_num_octaves + 1; i++) {
-    stage_background_ctx.fillStyle = ranHSL(hsl_white);
-    stage_background_ctx.fillRect(panel2_x + 37 * pixel_size, panel2_y + (9 + i * violin_octaves_height / violin_num_octaves), 67 * pixel_size, pixel_size);
+    stage_background_ctx.fillStyle = ranHSL(hsl_offblack);
+    stage_background_ctx.fillRect(panel2_x + 38 * pixel_size, panel2_y + (10 + i * violin_octaves_height / violin_num_octaves), 67 * pixel_size, pixel_size);
   }
 
 
@@ -93,30 +92,32 @@ export function renderBackground() {
   // LIBRARY PANEL
   // 
   const panel3_x = grid_col(14);
-  const panel3_y = panel_top_row + grid_row(10);
+  const panel3_y = panel_top_row + grid_row(10.25);
   const panel3_width = grid_col(9);
   const panel3_height = grid_row(5.75);
-  
-  const panel3_border_x = panel3_x + panel_border_inset;
-  const panel3_border_y = panel3_y + panel_border_inset;
-  const panel3_border_width = panel3_width - panel_border_inset * 2;
-  const panel3_border_height = panel3_height - panel_border_inset * 2;
-
-  fillRectWithRandom(stage_background_ctx, panel3_x, panel3_y, panel3_width, panel3_height, hsl_grey, 5);
-  fillRectWithRandom(stage_background_ctx, panel3_border_x, panel3_border_y, panel3_border_width, panel3_border_height, hsl_lightgrey, 20, 2);
-  sprite_text.fillText(stage_background_ctx, "The Library", panel3_x * 1.05 / pixel_size, (panel3_y + panel3_height) * .91 / pixel_size, 5, 0.81, rgb_offblack);
+  fillRectWithRandom(stage_background_ctx, panel3_x, panel3_y, panel3_width, panel3_height, hsl_grey, 8);
+  fillRectWithRandom(stage_background_ctx, panel3_x, panel3_y, panel3_width, panel3_height, hsl_darkgreen, 25, 1, 1);
+  sprite_text.fillText(stage_background_ctx, "The Library", panel3_x * 1.05 / pixel_size, (panel3_y + panel3_height) * .91 / pixel_size, 5, 0.81, undefined, rgb_lightgrey);
 
   // 
   // CHARACTER PANEL
   // 
-  const char_x = grid_col(7);
-  const char_y = panel_top_row;
-  const char_width = grid_col(6.5);
-  const char_height = grid_row(13);
-  const char_border_inset = 2 * pixel_size;
-  fillRectWithRandom(stage_background_ctx, char_x + char_border_inset, char_y + char_border_inset, char_width - char_border_inset * 2, char_height - char_border_inset * 2, hsl_darkred, 12);
-  fillRectWithRandom(stage_background_ctx, char_x + char_border_inset, char_y + char_height - char_border_inset * 6, char_width - char_border_inset * 2, char_border_inset * 5.1, hsl_lightgrey, 20);
-  fillRectWithRandom(stage_background_ctx, char_x, char_y, char_width, char_height, hsl_grey, 5, 5);
+
+  // Red background
+  fillRectWithRandom(stage_background_ctx, char_x, char_y, char_w, char_h, hsl_darkred);
+  fillRectWithRandom(stage_background_ctx, char_x + char_border_inset, char_y + char_h - char_border_inset * 6, char_w - char_border_inset * 2, char_border_inset * 5.1, hsl_lightgrey, 20);
+  fillRectWithRandom(stage_background_ctx, char_x, char_y, char_w, char_h, hsl_grey, 5, 2);
+  fillRectWithRandom(stage_background_ctx, char_x, char_y, char_w, char_h, hsl_darkgreen, 25, 1, 1);
+
+  // 
+  // INFO PANEL
+  // 
+  const info_x = grid_col(7);
+  const info_y = grid_row(16.3);
+  const info_w = grid_col(6.5);
+  const info_h = grid_row(2.2);
+  fillRectWithRandom(stage_background_ctx, info_x, info_y, info_w, info_h, hsl_grey, 6);
+
 
   // Draw stalagtites
   // const temp_canvas = dupeCanvas(base_canvas);

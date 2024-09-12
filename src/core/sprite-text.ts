@@ -67,30 +67,30 @@ class SpriteText {
    * @param color 
    * @returns 
    */
-  fillText(ctx: CanvasRenderingContext2D, text: string, x: number = 0, y: number = 0, size: number = 10, char_space: number = 0.3, color?: rgb, char_delay?: number): number {
+  fillText(ctx: CanvasRenderingContext2D, text: string, x: number = 0, y: number = 0, size: number = 10, char_space: number = 0.3, line_width?: number, color?: rgb, char_delay?: number): number {
     text = text.toUpperCase();
     x *= pixel_size;
     y *= pixel_size;
     size *= pixel_size;
     const space = char_space * size; 
+    let cur_offset = 0;
+    let carriage_returns = 0;
+    let char_delay_offset = 1;
     
     // Allow for recoloring text
     let canvas = this.spritesheet_text_canvas;
     if(color) canvas = this.getColorCanvas(color);
 
-    let offset = 0; 
+    let total_offset = 0; 
     text.split('').map((_,i) => {
       const code = text.charCodeAt(i);
-      
-      // Dont render Space
-      if(code == 32) {
-        offset += (space * 2); 
-        return;
-      }
-      
+      const char_is_space = code == 32;
+      const is_period = code == 46; 
+      const is_question = code == 63;
+  
       // Tighten up ! and . marks
-      if(code == 33 || code == 46) {
-        offset -= (space * 0.8);
+      if(code == 33 || is_period) {
+        cur_offset -= (space * 0.8);
       }
 
       // 0 index characters to align with spritesheet
@@ -101,8 +101,8 @@ class SpriteText {
       const source_y = 0;
       const source_w = char_width;
       const source_h = char_height;
-      const dest_x = x + offset;
-      const dest_y = y;
+      const dest_x = x + cur_offset;
+      const dest_y = y + carriage_returns * size * 2.5;
       const dest_w = size;
       const dest_h = size * char_height / char_width;
 
@@ -116,14 +116,39 @@ class SpriteText {
         dest_w, 
         dest_h
       );
-      // if(char_delay) setTimeout(drawFn, char_delay * i);
-      drawFn();
+      
+      // Dont render space
+      if(!char_is_space) {
+        // Use offset for line length
+        cur_offset += size + space;
+        
+        if(char_delay) {
+          char_delay_offset += char_delay;
+          setTimeout(drawFn, char_delay_offset);
+        }
+        else drawFn();
+      }
+      else {
+        cur_offset += (space * 2); 
+      }
 
-      // Use offset for line length
-      offset += size + space;
+      if(!line_width) {
+        total_offset = cur_offset;
+      }
+      // Carriage return
+      else if(char_is_space && cur_offset > line_width) {
+        total_offset += cur_offset;
+        cur_offset = 0;
+        carriage_returns += 1; 
+      }
+
+      // Cadence
+      if(char_delay && (is_question || is_period)) {
+        char_delay_offset += (char_delay * 5);
+      }
     });
 
-    return offset;
+    return total_offset;
   }
 
   /**

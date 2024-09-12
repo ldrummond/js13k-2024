@@ -45,7 +45,7 @@ export default class Sprite {
     const frame_canvases_ctxs: [HTMLCanvasElement, CanvasRenderingContext2D][] = spritesheet_rects.map(rect => {
       // Create canvas
       const [canvas, ctx] = canvasFromSpritesheet(rect);
-      document.body.append(canvas);
+      // document.body.append(canvas);
   
       // If mirrored, duplicate base canvas
       if(mirrored) {

@@ -43,10 +43,11 @@ export const hsl_grey: hsl = [0, 0, 19];
 export const hsl_white: hsl = [0, 0, 20];
 export const hsl_red: hsl = [9,70,20];
 export const hsl_darkred: hsl = [8,65,15];
+export const hsl_darkgreen: hsl = [164,38,5];
 export const hsl_lightgrey: hsl = [0,0,28];
 export const hsl_blue: hsl = [230, 80, 40];
 
-export const rgb_lightgrey: rgb = [50,50,50];
+export const rgb_lightgrey: rgb = [20,20,20];
 export const rgb_grey: rgb = [26,26,26];
 export const rgb_offblack: rgb = [3,3,3];
 export const rgb_white: rgb = [255,255,255];
@@ -103,10 +104,28 @@ export const pixel_count_height = Math.ceil(pixel_count_width * 9 / 16);
 export const pixel_size = container_width / pixel_count_width;
 
 // Footer
-export const panel_top_row = grid_row(3);
+export const panel_top_row = grid_row(2);
 export const footer_y = grid_row(21) / pixel_size;
 export const footer_x = (grid_col(1) + 20) / pixel_size;
 export const footer_space = (grid_col(24) - footer_x) / 4 / pixel_size;
+
+// Character
+export const char_x = grid_col(7);
+export const char_y = panel_top_row;
+export const char_w = grid_col(6.5);
+export const char_h = grid_row(13);
+export const char_border_inset = 2.5 * pixel_size;
+
+// Minion
+export const minion_x = grid_col(14);
+export const minion_y = panel_top_row; 
+export const minion_width = grid_col(9);
+export const minion_height = grid_row(2.75);
+export const minion_lines = {
+  "start": "See that little runt? He just turned 13 and is starting puberty.",
+  "encourage": "He needs a bit of a nudge. Click the brain to get his hormones started."
+};
+
 
 // Dom
 export const base_canvas = document.createElement("canvas")!;
