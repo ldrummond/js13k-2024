@@ -22,15 +22,10 @@ import {
   char_h,
   char_w,
   hsl_lightgrey,
-  minion_x,
-  minion_y,
-  minion_width,
-  minion_height,
-  hsl_darkgrey,
   rgb_darkgrey,
 } from "./constants";
 import { sprite_text } from "./sprite-text";
-import { dupeCanvas, fillRectWithRandom, ranHSL } from "./utils";
+import { dupeCanvas, fillRectWithRandom, fillRuleWithRandom, ranHSL } from "./utils";
 
 /**
  * 
@@ -40,7 +35,7 @@ export function renderBackground() {
   const [page_background_texture_canvas, page_background_texture_ctx] = dupeCanvas(base_canvas);
   page_background_texture_canvas.id = 'page-background';
   document.body.prepend(page_background_texture_canvas);
-  fillRectWithRandom(page_background_texture_ctx, 0, 0, window_width, window_height, hsl_grey, 1);
+  fillRectWithRandom(page_background_texture_ctx, 0, 0, window_width, window_height, hsl_offblack, 10);
 
   // Add Background 
   const [stage_background_canvas, stage_background_ctx] = dupeCanvas(main_canvas);
@@ -51,6 +46,7 @@ export function renderBackground() {
 
   // Draw Background Layer
   fillRectWithRandom(stage_background_ctx, 0, 0, container_width, container_height, hsl_darkgreen, 8);
+  // fillRectWithRandom(stage_background_ctx, 0, 0, container_width, container_height, hsl_darkgrey, 8);
 
   // 
   // ORGANS PANEL
@@ -66,7 +62,7 @@ export function renderBackground() {
   // 
   // MINION PANEL
   // 
-  fillRectWithRandom(stage_background_ctx, minion_x, minion_y, minion_width, minion_height, hsl_darkgrey, 5);
+  // fillRectWithRandom(stage_background_ctx, minion_x, minion_y, minion_width, minion_height, hsl_darkgrey, 9);
   // fillRectWithRandom(stage_background_ctx, minion_x, minion_y, minion_width, minion_height, hsl_darkgreen, 5, 0.5);
 
   // 
@@ -118,7 +114,9 @@ export function renderBackground() {
   const info_w = grid_col(9);
   const info_h = grid_row(2.75);
   fillRectWithRandom(stage_background_ctx, info_x, info_y, info_w, info_h, hsl_grey, 6);
-
+  // Horizontal Rule
+  fillRuleWithRandom(stage_background_ctx, info_x + 6 * pixel_size, info_y + 9.5 * pixel_size, 100 * pixel_size, hsl_darkgreen);
+     
 
   // Draw stalagtites
   // const temp_canvas = dupeCanvas(base_canvas);

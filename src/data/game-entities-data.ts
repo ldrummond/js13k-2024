@@ -1,10 +1,11 @@
-import { globals, grid_col, grid_row, minion_lines, panel_top_row, pixel_size, Resources, violin_note_frequencies, violin_num_notes, violin_num_octaves } from "@/core/constants";
+import { footer_space, footer_x, footer_y, globals, grid_col, grid_row, minion_lines, panel_top_row, pixel_size, Resources, violin_note_frequencies, violin_num_notes, violin_num_octaves } from "@/core/constants";
 import { GameEntity } from "@/core/game-entity";
 import { spritesheet_data } from "@/data/spritesheet-data";
 import { GameEntityState, GameEntityParams } from "@/core/game-entity";
-import { playViolinSound } from "@/core/game-audio";
-import { arrFull, percentOfRange, ranInt } from "@/core/utils";
+import { playViolinSound, soundError } from "@/core/game-audio";
+import { arrFull, arrRan, getEntityByName, percentOfRange, ranInt } from "@/core/utils";
 import { Animator } from "@/core/animator";
+import { drawEndFrame } from "@/core/endframe";
 
 const organ_x = grid_col(1) / pixel_size;
 const organ_y = (panel_top_row) / pixel_size;
@@ -22,7 +23,7 @@ const book_space = 27;
 const organs: GameEntityParams[] = [
   {
     name: "evil eye",
-    description: "the final evolution",
+    // description: "the final evolution",
     state: GameEntityState.AVAILABLE,
     cost: {
       [Resources.HORMONES]: {
@@ -36,11 +37,12 @@ const organs: GameEntityParams[] = [
       }
     },
     gain: {
-      // [Resources.HORMONES]: {
-      //   per_second: 0.5
-      // }
+   
     },
-    is_one_time_purchase: true,
+    onPurchase() {
+      drawEndFrame();
+    },
+    purchase_limit: 1,
     sprite_data: {
       x: organ_x + 25,
       y: organ_y + 5,
@@ -51,13 +53,13 @@ const organs: GameEntityParams[] = [
   },
   {
     // TODO: Simplify locked vs click
-    name: "pituitary",
-    description: "starts hormone production.",
-    // cooldown_duration: 2000,
+    name: "grow pituitary",
+    // description: "starts hormone production.",
+    cooldown_duration: 2000,
     state: GameEntityState.AVAILABLE,
     cost: {
       [Resources.HORMONES]: {
-        quantity: 10
+        quantity: 60
       }
     },
     gain: {
@@ -65,8 +67,20 @@ const organs: GameEntityParams[] = [
         per_second: 0.5
       }
     },
-    purchase_limit: 1,
-    is_one_time_purchase: true,
+    onPurchase() {
+      (this) as GameEntity;
+
+      if(this.cost) {
+        const hormones_cost = this.cost[Resources['HORMONES']];
+        if(hormones_cost?.quantity) hormones_cost.quantity *= 1.5;
+        const kidney = getEntityByName('form kidney');
+        kidney?.becomeAvailable();
+
+        const horns = getEntityByName('sharpen horns');
+        horns?.becomeAvailable();
+      }
+    },
+    purchase_limit: 5,
     sprite_data: {
       x: organ_x + 30,
       y: organ_y + 50,
@@ -75,21 +89,29 @@ const organs: GameEntityParams[] = [
     },
   },
   {
-    name: "kidney",
-    description: "starts hormone production.",
-    // cooldown_duration: 2000,
+    name: "form kidney",
+    cooldown_duration: 2000,
     state: GameEntityState.LOCKED,
     cost: {
       [Resources.HORMONES]: {
-        quantity: 10
+        quantity: 100
       }
     },
     gain: {
       [Resources.HORMONES]: {
-        per_second: 0.5
+        limit: 10
+      },
+      // [Resources.MATURITY]: {
+      //   quantity: 5,
+      //   per_second: 0.5
+      // }
+    },
+    onPurchase() {
+      if((this as GameEntity).purchase_count == 1) {
+        globals.ui_text?.updateMinionText(minion_lines['kidney']);
       }
     },
-    is_one_time_purchase: true,
+    purchase_limit: 2,
     sprite_data: {
       x: organ_x + 5,
       y: organ_y + 72,
@@ -98,19 +120,18 @@ const organs: GameEntityParams[] = [
     },
   },
   {
-    name: "brain",
-    description: "The root of all evil",
-    cooldown_duration: 1000,
+    name: "work brain",
+    // description: "The root of all evil",
+    cooldown_duration: 800,
     state: GameEntityState.AVAILABLE, 
     gain: {
       [Resources.HORMONES]: {
         quantity: 10
       }
     },
-    onClick() {
-      if(!globals.brain_first_clicked) {
-        globals.brain_first_clicked = true;
-        globals.minion_text = minion_lines.brain_clicked;
+    onPurchase() {
+      if((this as GameEntity).purchase_count == 1) {
+        globals.ui_text?.updateMinionText(minion_lines['brain_clicked']);
       }
     },
     sprite_data: {
@@ -122,7 +143,7 @@ const organs: GameEntityParams[] = [
   },
   {
     name: "lungs",
-    description: "Throat organs",
+    // description: "Throat organs",
     cooldown_duration: 1000,
     state: GameEntityState.LOCKED, 
     gain: {
@@ -139,7 +160,7 @@ const organs: GameEntityParams[] = [
   },
   {
     name: "bones",
-    description: "Growth spurt",
+    // description: "Growth spurt",
     cooldown_duration: 1000,
     state: GameEntityState.LOCKED, 
     gain: {
@@ -175,16 +196,22 @@ const organs: GameEntityParams[] = [
     },
   },
   {
-    name: "horns",
-    cooldown_duration: 2000,
+    name: "sharpen horns",
+    cooldown_duration: 5000,
     state: GameEntityState.LOCKED, 
-    gain: {
-      [Resources.MATURITY]: {
-        per_second: 1
+    cost: {
+      [Resources['HORMONES']]: {
+        quantity: 120
       }
     },
-    onClick() {
-      // game_data.hormones.increase_per_second += 0.1;
+    gain: {
+      [Resources['MATURITY']]: {
+        per_second: 0.2
+      }
+    },
+    onPurchase() {
+      const violin = getEntityByName("play violin");
+      violin?.becomeAvailable();
     },
     sprite_data: {
       x: organ_x + 4,
@@ -229,6 +256,10 @@ const organs: GameEntityParams[] = [
   },
 ];
 
+organs.map(organ_params => {
+  organ_params.clickSoundFn = soundError;
+});
+
 ////////////////////////////////////////////////
 // Music
 ////////////////////////////////////////////////
@@ -249,6 +280,14 @@ for (let r = 0; r < violin_num_octaves; r++) {
     note_buttons.push({
       state: GameEntityState.AVAILABLE, 
       is_selected: !(default_notes[c] === r),
+      cost: {
+        [Resources.HORMONES]: {
+          quantity: 50,
+        },
+        [Resources.MATURITY]: {
+          quantity: 20
+        }
+      },
       onClick() {
         playViolinSound(note_hz);
 
@@ -279,15 +318,30 @@ for (let r = 0; r < violin_num_octaves; r++) {
 
 const music = [ 
   {
-    name: "violin",
+    name: "play violin",
     cooldown_duration: note_length * violin_num_notes,
     state: GameEntityState.AVAILABLE, 
+    cost: {
+      // [Resources.MATURITY]: {
+      //   per_second: 0.1, 
+      //   quantity: 20,
+      // }
+    },
     gain: {
-      [Resources.MATURITY]: {
-        per_second: 1
+      [Resources.CONFIDENCE]: {
+        quantity: 1
       }
     },
-    onClick() {
+    onPurchase() {
+      const violin_texts = [
+        minion_lines['violin0'],
+        minion_lines['violin1'],
+        minion_lines['violin2'],
+        minion_lines['violin3'],
+        minion_lines['violin4']
+      ];
+      globals.ui_text?.updateMinionText(arrRan(violin_texts));
+
       const notes_to_play: GameEntity[] = [];
       const selected_notes = globals.game_entities.filter(entity => entity.id.match('note') && !entity.is_selected);
 
@@ -319,15 +373,32 @@ const music = [
 ////////////////////////////////////////////////
 // BOOKS
 ////////////////////////////////////////////////
-const books = [
+const books: GameEntityParams[] = [
   {
     name: "codex gigas",
-    cooldown_duration: 2000,
     state: GameEntityState.AVAILABLE, 
+    purchase_limit: 1,
+    cost: {
+      [Resources.HORMONES]: {
+        quantity: 200
+      },
+      [Resources.MATURITY]: {
+        quantity: 10
+      },
+      [Resources.CONFIDENCE]: {
+        quantity: 5
+      }
+    },
     gain: {
+      [Resources.HORMONES]: {
+        per_second: 2
+      },
       [Resources.KNOWLEDGE]: {
         quantity: 1
-      }
+      },
+    },
+    onPurchase() {
+      globals.ui_text?.updateMinionText(minion_lines['studies']);
     },
     sprite_data: {
       x: book_x + book_space * 0,
@@ -338,8 +409,9 @@ const books = [
   },
   {
     name: "the black arts",
-    cooldown_duration: 2000,
-    state: GameEntityState.AVAILABLE, 
+    state: GameEntityState.LOCKED, 
+    purchase_limit: 1,
+
     gain: {
       [Resources.KNOWLEDGE]: {
         quantity: 1
@@ -354,8 +426,8 @@ const books = [
   },
   {
     name: "Dantes Inferno",
-    cooldown_duration: 2000,
-    state: GameEntityState.AVAILABLE, 
+    purchase_limit: 1,
+    state: GameEntityState.LOCKED, 
     gain: {
       [Resources.KNOWLEDGE]: {
         quantity: 1
@@ -369,9 +441,9 @@ const books = [
     },
   },
   {
-    name: "chicken soup for the teenage devil",
-    cooldown_duration: 2000,
-    state: GameEntityState.AVAILABLE, 
+    name: "advice for a teenage devil",
+    purchase_limit: 1,
+    state: GameEntityState.LOCKED, 
     gain: {
       [Resources.KNOWLEDGE]: {
         quantity: 1
@@ -393,7 +465,7 @@ const books = [
       self.active_interactive_canvases = self.sprite_frames_interactive_canvases.next();
     },
     sprite_data: {
-      x: 280,
+      x: 275,
       y: 11,
       w: 10,
       spritesheet_rects: [spritesheet_data['iconPlaying'], spritesheet_data['iconMuted']]
@@ -401,8 +473,58 @@ const books = [
   },
 ];
 
+////////////////////////////////////////////////
+// ICONS
+////////////////////////////////////////////////
+const icon_width = 10;
+const icon_y = footer_y - icon_width / 2;
+
+const icons: GameEntityParams[] = [
+  {
+    name: "Hormones",
+    state: GameEntityState.AVAILABLE,
+    sprite_data: {
+      x: footer_x + footer_space * 0,
+      y: icon_y,
+      w: icon_width,
+      spritesheet_rects: [spritesheet_data['iconHormones']]
+    }
+  },
+  {
+    name: "Maturity",
+    state: GameEntityState.AVAILABLE,
+    sprite_data: {
+      x: footer_x + footer_space * 1,
+      y: icon_y,
+      w: icon_width,
+      spritesheet_rects: [spritesheet_data['iconHorn']]
+    }
+  },
+  {
+    name: "Confidence",
+    state: GameEntityState.AVAILABLE,
+    sprite_data: {
+      x: footer_x + footer_space * 2,
+      y: icon_y,
+      w: icon_width,
+      spritesheet_rects: [spritesheet_data['iconCoin']]
+    }
+  },
+  {
+    name: "Knowledge",
+    state: GameEntityState.AVAILABLE,
+    sprite_data: {
+      x: footer_x + footer_space * 3,
+      y: icon_y,
+      w: icon_width,
+      spritesheet_rects: [spritesheet_data['iconScroll']]
+    }
+  },
+];
+
 export const game_entities_data_list: GameEntityParams[] = [
   ...organs,
   ...music,
-  ...books
+  ...books,
+  ...icons
 ];

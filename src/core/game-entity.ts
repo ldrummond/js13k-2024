@@ -1,8 +1,9 @@
-import { click_duration, click_offset, createResourceTooltip, globals, resource_map, Resources, sprite_border_color, sprite_border_hover_color, tooltip_timeout } from "./constants";
+import { click_duration, click_offset, globals, resource_map, Resources, sprite_border_color, sprite_border_hover_color, sprite_purchased_limit_color, sprite_too_expensive_border_color, tooltip_timeout } from "./constants";
 import Sprite from "./sprite";
 import {  dupeCanvas, ranRGB, replaceColor } from "./utils";
 import { addToHitmask } from "./hitmask";
 import { SpriteData } from "@/core/sprite";
+import { playSoundFn } from "./game-audio";
 
 export const enum GameEntityState {
   "LOCKED",
@@ -16,6 +17,7 @@ export const enum GameEntityState {
 export interface EntityTransactionDetail {
   quantity?: number;
   per_second?: number;
+  limit?: number;
 }
 
 export interface EntityCost {
@@ -40,9 +42,10 @@ export interface GameEntityParams {
   cost?: EntityCost;
   gain?: EntityGain;
   sprite_data: SpriteData;
-  is_one_time_purchase?: boolean; 
   purchase_limit?: number;
+  clickSoundFn?: (v: number) => number;
   onClick?: () => void;
+  onPurchase?: () => void;
   hidden?: boolean;
   is_selected?: boolean;
 }
@@ -53,6 +56,8 @@ interface InteractiveCanvases {
   cooldown_canvas: HTMLCanvasElement;
   locked_canvas: HTMLCanvasElement;
   click_canvas: HTMLCanvasElement; 
+  at_limit_canvas: HTMLCanvasElement;
+  too_expensive_hover_canvas: HTMLCanvasElement
 }
 
 /**
@@ -71,21 +76,36 @@ export class GameEntity extends Sprite {
   sprite_frames_interactive_canvases: InteractiveCanvases[] = [];
   active_interactive_canvases: InteractiveCanvases;
   _onClick?: () => void;
+  onPurchase?: () => void; 
+  clickSoundFn?: (v: number) => number;
   elapsed_cooldown_percent: number = 0;
   hover_start: number = 0;
   last_clicked?: number;
   purchase_count: number = 0;
   purchase_limit?: number;
-  is_one_time_purchase = false; 
   is_too_expensive = false;
   is_hovering = false;
   is_clicking = false;
   is_selected? = false;
-  on_cooldown = false;
+  became_available = false; 
   hidden: boolean;
 
   constructor(opts: GameEntityParams) {
-    const { name, description, cooldown_duration, state, cost, gain, is_one_time_purchase, purchase_limit, onClick, sprite_data, hidden = false, is_selected } = opts;
+    const { 
+      name, 
+      description, 
+      cooldown_duration, 
+      state, 
+      cost,
+      gain, 
+      purchase_limit, 
+      onClick, 
+      onPurchase, 
+      clickSoundFn,
+      sprite_data, 
+      is_selected,
+      hidden = false, 
+     } = opts;
 
     // Init sprite
     super(sprite_data);
@@ -98,15 +118,29 @@ export class GameEntity extends Sprite {
     this.cost = cost;
     this.gain = gain;
     if(typeof purchase_limit === 'number' && purchase_limit > 0) this.purchase_limit = purchase_limit;
-    this.is_one_time_purchase = !!is_one_time_purchase;
     this._onClick = onClick;
+    this.onPurchase = onPurchase;
+    this.clickSoundFn = clickSoundFn;
     this.sprite_data = sprite_data;
     this.hitmask_color = ranRGB();
     this.hidden = hidden;
     this.is_selected = is_selected;
 
+
     this.preRenderCanvases();
     this.active_interactive_canvases = this.sprite_frames_interactive_canvases[0];
+  }
+
+  /**
+   * 
+   */
+  becomeAvailable() {
+    if(this.state === GameEntityState.LOCKED) this.state = GameEntityState.AVAILABLE;
+    this.became_available = true; 
+
+    setTimeout(() => {
+      this.became_available = false;
+    }, 150);
   }
 
   /**
@@ -142,27 +176,46 @@ export class GameEntity extends Sprite {
       // Redraw the sprite
       temp_ctx.globalCompositeOperation = "source-atop";
       temp_ctx.drawImage(canvas, 0, 0);
-      // document.body.append(canvas);
 
       // 
       // HOVER LAYER
       // 
       replaceColor(temp_canvas, temp_ctx, sprite_border_color, sprite_border_hover_color);
       interactive_canvases.hover_canvas = dupeCanvas(temp_canvas)[0];
-      replaceColor(temp_canvas, temp_ctx, sprite_border_hover_color, sprite_border_color);
-      // document.body.append(interactive_canvases.hover_canvas);
       // 
+
+      // 
+      // AT LIMIT LAYER
+      // 
+      replaceColor(temp_canvas, temp_ctx, sprite_border_hover_color, sprite_purchased_limit_color);
+      interactive_canvases.at_limit_canvas = dupeCanvas(temp_canvas)[0];
+      replaceColor(temp_canvas, temp_ctx, sprite_border_hover_color, sprite_border_color);
+      // 
+
+      // 
+      // TOO EXPENSIVE LAYER
+      // 
+      replaceColor(temp_canvas, temp_ctx, sprite_border_color, sprite_too_expensive_border_color);
+      temp_ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      temp_ctx.fillRect(0, 0, this.w, this.h);
+      interactive_canvases.too_expensive_hover_canvas = dupeCanvas(temp_canvas)[0];
+      // replaceColor(temp_canvas, temp_ctx, sprite_too_expensive_border_color, sprite_border_color);
+
+      // Redraw the sprite
+      temp_ctx.globalCompositeOperation = 'source-over';
+      temp_ctx.drawImage(canvas, 0, 0);
+      temp_ctx.globalCompositeOperation = "source-atop";
+
 
       // 
       // COOLDOWN LAYER
       // 
       // Darken with darkgrey
-      temp_ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      temp_ctx.fillStyle = 'rgba(0,0,0,0.4)';
       temp_ctx.fillRect(0, 0, this.w, this.h);
       
       // Duplicate canvas to darkgrey
       interactive_canvases.cooldown_canvas = dupeCanvas(temp_canvas)[0];
-      // document.body.append(interactive_canvases.cooldown_canvas);
 
       // 
       // LOCKED LAYER
@@ -173,7 +226,6 @@ export class GameEntity extends Sprite {
 
       // Duplicate canvas to black
       interactive_canvases.locked_canvas = dupeCanvas(temp_canvas)[0];
-      // document.body.append(interactive_canvases.locked_canvas);
       // 
 
       // Redraw the sprite
@@ -216,7 +268,6 @@ export class GameEntity extends Sprite {
     }
     // Stop hovering
     if(this.is_hovering && !is_hovering) {
-      globals.active_message = ''; 
       globals.hovering_entity = undefined;
     }
     this.is_hovering = is_hovering;
@@ -227,7 +278,6 @@ export class GameEntity extends Sprite {
       globals.cursor = 'pointer';
 
       if(is_past_tooltip_predelay && this.name) {
-        globals.active_message = this.name;
         globals.active_entity = this; 
       }
     }
@@ -264,12 +314,34 @@ export class GameEntity extends Sprite {
     }
   }
 
+  /**
+   * 
+   * @returns 
+   */
   onClick() {
-    if(this.is_clicking || (this.is_one_time_purchase && this.last_clicked) || (this.purchase_limit && (this.purchase_count >= this.purchase_limit))) return; 
+    // Handle click 
+    const at_purchase_limit = this.purchase_limit && (this.purchase_count >= this.purchase_limit);
+    if(this.is_clicking || this.state === GameEntityState.COOLDOWN || at_purchase_limit) return; 
+    this.is_clicking = true; 
 
-    // PURCHASE
-    if(this.state === GameEntityState.AVAILABLE) {
-      this.is_clicking = true; 
+    // Click callback 
+    if(this._onClick) this._onClick();
+
+    // Play sound
+    if(this.clickSoundFn) playSoundFn(this.clickSoundFn);
+
+    // Stop click
+    setTimeout(() => {
+      this.is_clicking = false; 
+    }, click_duration);
+
+    // 
+    // Handle PURCHASE
+    const can_purchase = this.state === GameEntityState.AVAILABLE && !this.is_too_expensive && !at_purchase_limit;
+    // 
+    // 
+    if(can_purchase) {
+      this.purchase_count += 1;
 
       // Add cooldown
       if(this.cooldown_duration) {
@@ -277,28 +349,43 @@ export class GameEntity extends Sprite {
         this.state = GameEntityState.COOLDOWN;
       }
 
-      // TODO: Add cost
+      // Apply Cost
+      if(this.cost) {
+        Object.entries(this.cost).map(entry => {
+          const [resource, resource_cost_details] = entry as unknown as [Resources, EntityTransactionDetail];
+          resource_map[resource].quantity -= resource_cost_details.quantity || 0;
+          resource_map[resource].increase_per_second -= resource_cost_details.per_second || 0;
+        });
+      }
 
-      // Animate gain
-      this.purchase_count += 1;
+      // Apply gain
       if(this.gain) {
         Object.entries(this.gain).map(entry => {
           const [resource, resource_gain_details] = entry as unknown as [Resources, EntityTransactionDetail];
-          resource_map[resource].quantity += resource_gain_details.quantity || 0;
-          resource_map[resource].increase_per_second += resource_gain_details.per_second || 0;
-          createResourceTooltip(resource, this.x + (this.w / 2), this.y);
+          const resource_details = resource_map[resource];
+          const quantity_change = resource_gain_details.quantity || 0;
+          const ps_change = resource_gain_details.per_second || 0;
+          const limit_change = resource_gain_details.limit || 0;
+          resource_details.quantity += quantity_change;
+          resource_details.increase_per_second += ps_change;
+          resource_details.limit += limit_change; 
+
+          if(globals.ui_text) {
+            globals.ui_text.renderGainTooltip(resource_details, quantity_change, ps_change, limit_change);
+          }
         });
       }
-      
-      if(this._onClick) this._onClick();
 
-      setTimeout(() => {
-        this.is_clicking = false; 
-      }, click_duration);
+      // Purchase callback
+      if(this.onPurchase) this.onPurchase();
     }
   }
 
-  // TODO: Use global main_ctx
+  /**
+   * 
+   * @param ctx 
+   * @returns 
+   */
   render(ctx: CanvasRenderingContext2D) {
     if(this.hidden) return; 
     let canvas_to_render = this.active_interactive_canvases.main_canvas;
@@ -307,12 +394,25 @@ export class GameEntity extends Sprite {
     let cw = canvas_to_render.width;
     let ch = canvas_to_render.height;
 
+    // Purchase limit
+    const at_purchase_limit = this.purchase_limit && this.purchase_count >= this.purchase_limit;
+    const is_locked_or_selected = (this.state === GameEntityState.LOCKED) || this.is_selected;
+    
     // Decide what to render
-    if(this.state === GameEntityState.LOCKED || this.is_selected) {
+    if(is_locked_or_selected) {
       canvas_to_render = this.active_interactive_canvases.locked_canvas;
     }
+    else if(this.became_available) {
+      // Flash white
+      canvas_to_render = this.active_interactive_canvases.click_canvas;
+    }
     else if(this.is_too_expensive) {
-      canvas_to_render = this.active_interactive_canvases.cooldown_canvas;
+      if(this.is_hovering) {
+        canvas_to_render = this.active_interactive_canvases.too_expensive_hover_canvas;
+      }
+      else {
+        canvas_to_render = this.active_interactive_canvases.cooldown_canvas;
+      }
     }
     else if(this.is_clicking) {
       y += click_offset;
@@ -325,7 +425,10 @@ export class GameEntity extends Sprite {
       ch *= cooldown_anim_percent;
       h *= cooldown_anim_percent;
     }
-    else if(this.is_hovering || (this.is_one_time_purchase && this.last_clicked)) {
+    else if(at_purchase_limit) {      
+      canvas_to_render = this.active_interactive_canvases.at_limit_canvas;
+    }
+    else if(this.is_hovering) {
       canvas_to_render = this.active_interactive_canvases.hover_canvas;
     }
     if(this.is_hovering && this.is_selected) {

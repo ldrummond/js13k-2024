@@ -129,7 +129,7 @@ class SpriteText {
       const dest_w = size;
       const dest_h = size * char_height / char_width;
 
-      const drawFn = () => ctx.drawImage(canvas!, 
+      let drawFn = () => ctx.drawImage(canvas!, 
         source_x, 
         source_y, 
         source_w, 
@@ -139,44 +139,53 @@ class SpriteText {
         dest_w, 
         dest_h
       );
+
+      // Overwrite draw
+      if(char_is_icon) {
+        let icon_canvas_to_render = this.icon_hormones_canvas;
+
+        if(code === icon_maturity_code && this.icon_maturity_canvas) {
+          icon_canvas_to_render = this.icon_maturity_canvas;
+        }
+        if(code === icon_confidence_code && this.icon_confidence_canvas) {
+          icon_canvas_to_render = this.icon_confidence_canvas;
+        }
+        if(code === icon_knowledge_code && this.icon_knowledge_canvas) {
+          icon_canvas_to_render = this.icon_knowledge_canvas;
+        }
+        if(code === icon_eye_code && this.icon_eye_canvas) {
+          icon_canvas_to_render = this.icon_eye_canvas;
+        }
+
+        if(icon_canvas_to_render) {
+          drawFn = () => {
+            ctx.drawImage(icon_canvas_to_render, dest_x - space * 3, dest_y - space, 5.5 * pixel_size, 5.5 * pixel_size);
+          };
+          cur_offset += (space * 1);
+        }
+      }
       
       // Dont render space
-      if(!dont_render_char) {
-        // Use offset for line length
-        cur_offset += size + space;
+      if(char_is_space) {
+        drawFn = () => {};
+        cur_offset -= space * 1.3; 
         
         if(char_delay) {
-          char_delay_offset += char_delay;
-          setTimeout(drawFn, char_delay_offset);
-        }
-        else drawFn();
-      }
-      else {
-        cur_offset += (space * 2); 
-
-        if(char_is_icon) {
-          let icon_canvas_to_render = this.icon_hormones_canvas;
-
-          if(code === icon_maturity_code && this.icon_maturity_canvas) {
-            icon_canvas_to_render = this.icon_maturity_canvas;
-          }
-          if(code === icon_confidence_code && this.icon_confidence_canvas) {
-            icon_canvas_to_render = this.icon_confidence_canvas;
-          }
-          if(code === icon_knowledge_code && this.icon_knowledge_canvas) {
-            icon_canvas_to_render = this.icon_knowledge_canvas;
-          }
-          if(code === icon_eye_code && this.icon_eye_canvas) {
-            icon_canvas_to_render = this.icon_eye_canvas;
-          }
-
-          if(icon_canvas_to_render) {
-            ctx.drawImage(icon_canvas_to_render, dest_x - space * 2, dest_y - space, char_height * 2.3, char_height * 2.3);
-            cur_offset += (space * 5);
-          }
+          char_delay_offset -= char_delay;
         }
       }
+      
+      // Render Char
+      // Use offset for line length
+      cur_offset += size + space;
+      
+      if(char_delay) {
+        char_delay_offset += char_delay;
+        setTimeout(drawFn, char_delay_offset);
+      }
+      else drawFn();
 
+      // Adjust line width
       if(!line_width) {
         total_offset = cur_offset;
       }

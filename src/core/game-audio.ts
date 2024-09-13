@@ -70,6 +70,7 @@ const t=(i: number, n: number)=>(n-i)/n;
 
 /**
  * Nudge Sound
+ * XEM: MiniSoundEditor
  */
 export const soundNudge = (i:number): number | null => {
   var n=6e3;
@@ -77,6 +78,10 @@ export const soundNudge = (i:number): number | null => {
   var q = t(i,n);
   return Math.sin(i*0.01*Math.sin(0.009*i+Math.sin(i/200))+Math.sin(i/100))*q*q;
 };
+
+
+export const soundError = (i: number) => Math.abs(((2*i % 4096) / 4096) - 1) * Math.exp(-i/6000);
+
 
 /**
  * 

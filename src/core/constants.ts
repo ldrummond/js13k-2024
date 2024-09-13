@@ -1,10 +1,12 @@
 
 // Constants format Inspired by Elliot Neilsen 
 // https://github.com/elliot-nelson/js13k-2022-moth
+import { spritesheet_data } from "@/data/spritesheet-data";
 import { Animator } from "./animator";
 import { GameEntity } from "./game-entity";
 import Sprite from "./sprite";
-import { dupeCanvas, fillRectWithRandom, htmlFromString } from "./utils";
+import { UIText } from "./ui-text";
+import { dupeCanvas, fillRectWithRandom } from "./utils";
 
 // Overrites
 declare global {
@@ -31,22 +33,23 @@ Array.prototype.removeElement = function<T>(e: T): void {
 // Resources
 export const enum Resources {
   "HORMONES",
-  "CONFIDENCE",
   "MATURITY",
+  "CONFIDENCE",
   "KNOWLEDGE"
 }
 
 // Colors
 // TODO: HSL or RGB, probably RBG
 export const hsl_offblack: hsl = [0,0,1];
-export const hsl_grey: hsl = [0, 0, 19];
+export const hsl_grey: hsl = [2, 2, 22];
 export const hsl_white: hsl = [0, 0, 20];
 export const hsl_red: hsl = [9,70,20];
 export const hsl_darkred: hsl = [8,65,15];
-export const hsl_darkgrey: hsl = [3,3,8];
+export const hsl_darkgrey: hsl = [2,2,9];
 export const hsl_darkgreen: hsl = [164,38,5];
 export const hsl_lightgrey: hsl = [0,0,28];
 export const hsl_blue: hsl = [230, 80, 40];
+export const hsl_gold: hsl = [51,97,31];
 
 export const rgb_darkgreen: rgb = [8,18,15];
 export const rgb_darkgrey: rgb = [20,20,20];
@@ -54,16 +57,21 @@ export const rgb_lightgrey: rgb = [100,100,100];
 export const rgb_grey: rgb = [26,26,26];
 export const rgb_offblack: rgb = [3,3,3];
 export const rgb_white: rgb = [255,255,255];
-export const rgb_offwhite: rgb = [100, 100, 100];
+export const rgb_offwhite: rgb = [150, 150, 150];
 export const rgb_gold: rgb = [155,132,2];
 export const rgb_brown: rgb = [93,52,52];
+export const rgb_red: rgb = [180,49,67];
+export const rgb_darkred: rgb = [140, 40, 54];
+export const rgb_rust: rgb = [111, 39, 50];
 
 export const sprite_border_color: rgb = rgb_brown;
-export const sprite_border_hover_color: rgb = [180,49,67];
+export const sprite_border_hover_color: rgb = rgb_darkred;
+export const sprite_purchased_limit_color: rgb = rgb_rust;
+export const sprite_too_expensive_border_color: rgb = rgb_white;
 
 // Define Constants
 // export const fps = 50;
-export const fps = 50;
+export const fps = 30;
 export const interval = 1000 / fps; 
 export const pi = 3.14;
 export const twopi = pi * 2;
@@ -72,7 +80,7 @@ export const qrtrpi = pi / 4;
 export const roottwo = Math.sqrt(2);
 export const click_offset = 2;
 export const click_duration = 160;
-export const tooltip_timeout = 222;
+export const tooltip_timeout = 200;
 export const dpr = window.devicePixelRatio || 1;
 export const window_width = window.innerWidth;
 export const window_height = window.innerHeight;
@@ -112,8 +120,8 @@ export const pixel_size = container_width / pixel_count_width;
 // Footer
 export const panel_top_row = grid_row(3.5);
 export const footer_y = grid_row(21.75) / pixel_size;
-export const footer_x = (grid_col(1) + 20) / pixel_size;
-export const footer_space = (grid_col(24) - footer_x) / 4 / pixel_size;
+export const footer_x = (grid_col(1) + 5) / pixel_size;
+export const footer_space = (grid_col(25.5) - footer_x) / 4 / pixel_size;
 
 // Character
 export const char_x = grid_col(7);
@@ -125,12 +133,19 @@ export const char_border_inset = 2.5 * pixel_size;
 // Minion
 export const minion_x = grid_col(1);
 export const minion_y = grid_row(0.75); 
-export const minion_width = grid_col(20);
+export const minion_width = grid_col(22);
 export const minion_height = grid_row(1.5);
 export const minion_lines = {
   "start": "See that little runt? He just turned 13 and is starting puberty.",
   "encourage": "He needs a bit of a nudge. Click the brain to get his hormones pumping.",
-  "brain_clicked": "Nice! Look at him squirm. Get more hormones and unlock that pituitary."
+  "brain_clicked": "Nice! Look at him squirm. Get more hormones and grow that pituitary.",
+  "kidney": "Hmm not sure what that does.",
+  "violin0": "What is this novel form of torture!?",
+  "violin1": "Agh! The agony!",
+  "violin2": "What horrible sounds!",
+  "violin3": "Where did you get this evil device!?",
+  "violin4": "No amount of practice will be enough!",
+  "studies": "Keep studying. The devil is in the details. He he"
 };
 
 // Dom
@@ -144,7 +159,6 @@ loading_canvas.id = 'loading';
 loading_canvas.classList.add("fill");
 document.body.append(loading_canvas);
 fillRectWithRandom(loading_ctx, 0, 0, window_width, window_height, hsl_offblack);
-loading_ctx.imageSmoothingEnabled = false;
 
 // Page Stage
 export const container = document.createElement("div"); 
@@ -173,7 +187,6 @@ export const [hitmask_canvas] = dupeCanvas(main_canvas);
 interface Globals {
   is_clicking: boolean;
   hitmask_active_color: string;
-  active_message: string;
   hovering_entity?: GameEntity;
   active_entity?: GameEntity;
   mousepos: Point;
@@ -184,13 +197,12 @@ interface Globals {
   game_entities: GameEntity[];
   animators: Animator[];
   minion_text: string;
-  brain_first_clicked: boolean, 
+  ui_text?: UIText,
 }
 
 export const globals: Globals = {
   is_clicking: false,
   hitmask_active_color: '',
-  active_message: '',
   active_entity: undefined,
   mousepos: { x: 0, y: 0} as Point,
   volume: 1,
@@ -200,15 +212,14 @@ export const globals: Globals = {
   game_entities: [],
   animators: [],
   minion_text: '',
-  brain_first_clicked: false
 };
 
 export const hormones: ResourceDetails = {
   name: "hormones",
   type: Resources.HORMONES,
+  icon_rect: spritesheet_data['iconHormones'],
   placeholder_char: '{',
-  icon: `<path d="M35 32.6C35 38.4 30.5 43 25 43s-10-4.6-10-10.4c0-1.3.6-3.6 1.7-6.4a118.9 118.9 0 0 1 7.5-16.5l.8-1.6a240.8 240.8 0 0 1 8.3 18c1 2.9 1.7 5.2 1.7 6.5Z"/>`,
-  quantity: 0,
+  quantity: 100,
   limit: 100,
   increase_per_second: 0,
   locked_state: false,
@@ -218,8 +229,8 @@ export const hormones: ResourceDetails = {
 export const confidence: ResourceDetails = {
   name: "confidence",
   type: Resources.CONFIDENCE,
+  icon_rect: spritesheet_data['iconCoin'],
   placeholder_char: '}',
-  icon: `<path d="m22 9 8 3c3 1 6 3 7 5 5 8 3 18-4 22-3 2-7 2-10 2a16 16 0 0 1-8-30 21 21 0 0 1 7-2Z"/><circle cx="27.1" cy="24" r="16"/><path d="M27 8v31M38 24a21 21 0 0 1-3 2c-2 1-5 3-8 3s-6-2-8-3a23 23 0 0 1-3-2 20 20 0 0 1 3-2c2-1 5-3 8-3s6 2 8 3a23 23 0 0 1 3 2Z"/><ellipse cx="26.9" cy="24.1" rx="2.8" ry="4.7"/>`,
   quantity: 0,
   limit: 10,
   increase_per_second: 0,
@@ -230,8 +241,8 @@ export const confidence: ResourceDetails = {
 export const maturity: ResourceDetails = {
   name: "maturity",
   type: Resources.MATURITY,
+  icon_rect: spritesheet_data['iconHorn'],
   placeholder_char: '|',
-  icon: `<path d="m20.4 23.5-9-3.7 7.3-12 1.3 7.4v.7l.7.1L32 19.5l-2.9 7.9-.4 1 1 .3 9 2.7L35 44H22.9l2.7-7.7.3-.9-.9-.3-7-2.7 3-7.6.3-1-1-.3Z"/>`,
   quantity: 0,
   limit: 20,
   increase_per_second: 0,
@@ -242,10 +253,10 @@ export const maturity: ResourceDetails = {
 export const knowledge: ResourceDetails = {
   name: "knowledge",
   type: Resources.KNOWLEDGE,
+  icon_rect: spritesheet_data['iconScroll'],
   placeholder_char: '~',
-  icon: `<rect width="24" height="8" x="7" y="8" rx="4"/><path d="M13 8h21a4 4 0 0 1 4 4v26a4 4 0 0 1-4 4H17a4 4 0 0 1-4-4V8Z"/><path d="M18 34h21a4 4 0 0 1 0 8H18v-8Z"/><path d="M17 42a4 4 0 0 0 0-8m-4-22c0-2.2-.9-4-2-4"/><circle cx="17" cy="38" r="3"/>`,
   quantity: 0,
-  limit: 5,
+  limit: 4,
   increase_per_second: 0,
   locked_state: true,
   should_unlock: () => false
@@ -267,23 +278,3 @@ export const resource_map: { [key in Resources]: ResourceDetails} = {
   [Resources.CONFIDENCE]: confidence,
   [Resources.KNOWLEDGE]: knowledge,
 };
-
-export function createIconSvg(path: string) {
-  return htmlFromString(`<svg viewBox='0 0 50 50'>${path}</svg>`);
-}
-
-export function createResourceTooltip(resource: Resources, x: number, y: number) {
-  const icon = createIconSvg(resource_map[resource].icon);
-  const tooltip_el = htmlFromString(`<div class='resource-gain'></div>`) as HTMLElement;
-  tooltip_el.append(icon);
-  tooltip_el.style.left = x + 'px';
-  tooltip_el.style.top = y + 'px';
-  container.append(tooltip_el);
-  setTimeout(() => {tooltip_el.remove();}, 2000);
-}
-
-// TODO: Remove
-// createResourceTooltip(Resources.HORMONES,10, 0);
-// createResourceTooltip(Resources.CONFIDENCE,110, 0);
-// createResourceTooltip(Resources.KNOWLEDGE,220, 0);
-// createResourceTooltip(Resources.MATURITY, 330, 0);

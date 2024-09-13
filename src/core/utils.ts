@@ -1,7 +1,8 @@
 
 // Functions
 
-import { base_canvas, pixel_size, spritesheet_img } from "./constants";
+import { base_canvas, globals, pixel_size, resource_map, Resources, spritesheet_img } from "./constants";
+import { GameEntity, EntityTransactionDetail } from "./game-entity";
 
 export function percentOfRange(percent: number, lower_bound: number, upper_bound: number): number {
   return lower_bound + (percent) * (upper_bound - lower_bound);
@@ -9,6 +10,10 @@ export function percentOfRange(percent: number, lower_bound: number, upper_bound
 
 export function arrFull(x: number): number[] {
   return Array(x).fill(x);
+}
+
+export function arrRan<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random()*arr.length)];
 }
 
 // 
@@ -73,6 +78,72 @@ export function pointInRect(x: number, y: number, r: Rect) {
   return x > r['x'] && x < (r['x'] + r['w']) && y > r['y'] && y < (r['y'] + r['h']);
 }
 
+//
+// 
+export function cantAffordEntity(entity: GameEntity): boolean {
+  const entity_cost = entity.cost;
+  let too_expensive = false;
+
+  if(!entity_cost) return false;
+
+  Object.entries(entity_cost).map(entry => {
+    const [resource, resource_cost_details] = entry as unknown as [Resources, EntityTransactionDetail];
+    if(resource_cost_details.quantity && resource_map[resource].quantity < resource_cost_details.quantity) {
+      too_expensive = true;
+    }
+    if(resource_cost_details.per_second && resource_map[resource].increase_per_second < resource_cost_details.per_second) {
+      too_expensive = true;
+    }
+  });
+
+  return too_expensive;
+}
+
+// 
+// 
+export function canAffordResourceTransaction(global_resource: ResourceDetails, transaction_cost: EntityTransactionDetail): boolean {
+  return !!(
+    (transaction_cost.quantity && global_resource.quantity > transaction_cost.quantity) ||
+    (transaction_cost.per_second && global_resource.increase_per_second > transaction_cost.per_second) 
+  );
+}
+
+// 
+// 
+// CHATGPT
+export function deepEqual(obj1: any, obj2: any): boolean {
+  // Check for strict equality (handles primitives and reference equality)
+  if (obj1 === obj2) {
+      return true;
+  }
+
+  // Check if both are objects
+  if (typeof obj1 !== 'object' || obj1 === null || typeof obj2 !== 'object' || obj2 === null) {
+      return false; // One is not an object or is null
+  }
+
+  // Get object keys
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+
+  // Compare number of keys
+  if (keys1.length !== keys2.length) {
+      return false;
+  }
+
+  // Recursively compare each property
+  for (const key of keys1) {
+      if (!keys2.includes(key) || !deepEqual(obj1[key], obj2[key])) {
+          return false;
+      }
+  }
+
+  return true;
+}
+
+
+//
+// 
 export function fillRuleWithRandom(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -141,15 +212,25 @@ export function fillRectWithRandom(
 
 /**
  * 
+ * @param ctx 
+ * @param rect 
+ * @param x 
+ * @param y 
+ * @param w 
+ * @param h 
+ */
+export function drawSpritesheetImage(ctx: CanvasRenderingContext2D, rect: Rect, x: number, y: number, w: number, h: number) {
+  ctx.drawImage(spritesheet_img, rect['x'], rect['y'], rect['w'], rect['h'], x, y, w, h);
+};
+
+/**
+ * 
  * @param rect 
  * @param canvas_width 
  * @param canvas_height 
  * @returns 
  */
 export function canvasFromSpritesheet(rect: Rect, cw?: number, ch?: number): [HTMLCanvasElement, CanvasRenderingContext2D] {
-  console.log('Sprite Text Init Src: INNER: ', rect);
-  console.log('canvas from spritesheet', rect, base_canvas.width, base_canvas.height, cw, ch);
-  
   const [canvas,ctx] = dupeCanvas(base_canvas);
 
   const w = typeof cw === 'number' ? cw : rect['w'];
@@ -161,43 +242,11 @@ export function canvasFromSpritesheet(rect: Rect, cw?: number, ch?: number): [HT
   return [canvas, ctx];
 }
 
-// /**
-//  * 
-//  */
-// export function fillRectWithStalagtites(
-//   ctx: CanvasRenderingContext2D,
-//   x = 0,
-//   y = 0,
-//   w: number, 
-//   h: number, 
-//   hsl: hsl,
-// ) {
-//   const pixel_count_w = Math.ceil(w / pixel_size);
-//   const pixel_count_h = Math.ceil(h / pixel_size);
-//   ctx.fillStyle = `hsl(${hsl[0]}, ${hsl[1]}, ${hsl[2]})`;
-
-//   // If border width, only fill for border
-//   let r = 0;
-//   let c = 0;
-//   let stalagtites = [2, 5, 3, 3];
-//   while(r < pixel_count_h) {
-//     while(c < pixel_count_w) {
-//       c++; 
-//       const should_start_stalagtite = (r === 0 && Math.random() > 0.6);
-//       if(should_start_stalagtite) {
-//         const stalagtite_base_width = Math.round(Math.random() * pixel_count_w);
-
-//       }
-//     }
-//     r++; 
-//     c = 0; 
-//   }
-
-//   for(let r = 0; r <= pixel_count_h; r++) {
-//     for (let c = 0; c <= pixel_count_w; c++) {
-//       if(should_start_stalagtite) {
-//         ctx.fillRect(c * (pixel_size * ) + x, r * pixel_size + y, pixel_size * 1, pixel_size * 1);
-//       } else if(r < 1)
-//     }
-//   }
-// }
+/**
+ * 
+ * @param name 
+ * @returns 
+ */
+export function getEntityByName(name: string) {
+  return globals.game_entities.find(entity =>  entity.name == name);
+}

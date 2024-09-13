@@ -2,6 +2,7 @@ declare module '*.jpg';
 declare module '*.png';
 
 type rgb = [number, number, number]
+type rgba = [number,number,number,number]
 type hsl = [number, number, number]
 
 interface Point {
@@ -20,7 +21,7 @@ interface ResourceDetails {
   name: string;
   type: number;
   placeholder_char: string;
-  icon: string;
+  icon_rect: Rect,
   limit: number;
   quantity: number;
   increase_per_second: number;

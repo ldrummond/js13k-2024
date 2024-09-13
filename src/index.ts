@@ -1,4 +1,4 @@
-import { char_border_inset, char_h, char_w, char_x, char_y, container_height, container_width, globals, hsl_darkred, hsl_offblack, interval, loading_canvas, loading_ctx, main_ctx, minion_lines, resource_list, spritesheet_img } from './core/constants';
+import { char_border_inset, char_h, char_w, char_x, char_y, container_height, container_width, globals, hsl_darkred, hsl_offblack, interval, loading_canvas, loading_ctx, main_ctx, minion_lines, resource_list, rgb_red, spritesheet_img } from './core/constants';
 import { GameEntity } from './core/game-entity';
 import { UIText } from './core/ui-text';
 import Sprite from './core/sprite';
@@ -20,10 +20,6 @@ console.log("Load Spritesheet", spritesheet_img);
  * Load spritesheet first
  */
 function spritesheetLoaded() {
-  // Add Loading Text
-  // sprite_text.fillText(loading_ctx, 'start puberty', window_width / 2, window_height / 2 - 30, 2, undefined, rgb_gold);
-  console.log("On Loaded Spritesheet");
-
   // 
   // Initialize everything
   // 
@@ -31,7 +27,17 @@ function spritesheetLoaded() {
   renderBackground();
   console.log("Rendered Background");
   
+  // INIT TEXT BEFORE WRITING
   const ui_text = new UIText();
+  globals.ui_text = ui_text;
+  
+  // Add Loading Text
+  // sprite_text.fillText(loading_ctx, 'start puberty', window_width / 2, window_height / 2 - 30, 2, undefined, rgb_gold);
+  setTimeout(() => {
+    sprite_text.fillText(loading_ctx, 'Infernal Adolescence', 20, 60, 12, 0.12, undefined, rgb_red, 60);
+  }, 100);
+
+  // Init sprites
   sprite_data_list.map(d => globals.sprites.push(new Sprite(d)));
   game_entities_data_list.map(d => globals.game_entities.push(new GameEntity(d)));
 
@@ -86,11 +92,9 @@ function spritesheetLoaded() {
       const step_percent = 1 - (repeats_left / steps); 
       loading_ctx.clearRect(0, 0, loading_canvas.width, loading_canvas.height * step_percent);
       if(repeats_left == 1) {
-        globals.minion_text = minion_lines['start'];
-
-        setTimeout(() => {
-          globals.minion_text = minion_lines['encourage'];
-        }, 7000);
+        globals.ui_text?.updateMinionText(minion_lines['start']);
+        // QUEUE
+        globals.ui_text?.updateMinionText(minion_lines['encourage']);
 
         loading_canvas.remove();
       }
@@ -150,6 +154,7 @@ function spritesheetLoaded() {
         });
         
         // Update all entities
+        globals.active_entity = undefined;
         globals.game_entities.map((entity: GameEntity) => {
           entity.onUpdate();
           entity.render(main_ctx);
