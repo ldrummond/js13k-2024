@@ -140,7 +140,7 @@ class SpriteText {
 
       // Overwrite draw
       if(char_is_icon) {
-        let icon_canvas_to_render = this.icon_hormones_canvas;
+        let icon_canvas_to_render = this.icon_hormones_canvas as HTMLCanvasElement;
 
         if(code === icon_maturity_code && this.icon_maturity_canvas) {
           icon_canvas_to_render = this.icon_maturity_canvas;
