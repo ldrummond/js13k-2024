@@ -125,9 +125,11 @@ function playChordWithFalloff(chord: Chord, duration: number, initial_volume: nu
 /**
  * 
  */
+
 export function playBookOpeningSound() {
   const book_opening_chord = chords_obj['G_major']; // G major chord for example
-  playChordWithFalloff(book_opening_chord, 1.5, 0.02, 1.0);
+  const volume = globals.volume * 0.02;
+  playChordWithFalloff(book_opening_chord, 1.5, volume, 1.0);
 }
 
 /**
@@ -135,7 +137,8 @@ export function playBookOpeningSound() {
  */
 export function playMysteriousWhisper() {
   const chord = chords_obj["C_minor"]; // Minor chord for a mysterious tone
-  playChordWithFalloff(chord, 2.0, 0.02, 1.0); // Quick fade-out
+  const volume = globals.volume * 0.02;
+  playChordWithFalloff(chord, 2.0, volume, 1.0); // Quick fade-out
 }
 
 /**
@@ -143,7 +146,8 @@ export function playMysteriousWhisper() {
  */
 export function playCreepyAmbience() {
   const chord = chords_obj["E_diminished"]; // Dissonant chord for a creepy effect
-  playChordWithFalloff(chord, 5.0, 0.03, 4.0); // Long fade-in and fade-out
+  const volume = globals.volume * 0.03;
+  playChordWithFalloff(chord, 5.0, volume, 4.0); // Long fade-in and fade-out
 }
 
 /**
@@ -151,7 +155,8 @@ export function playCreepyAmbience() {
  */
 export function playDistortedAttack() {
   const chord = chords_obj["D_minor"]; // Minor chord for a dark tone
-  playChordWithFalloff(chord, 1.0, 0.1, 0.5); // Sharp, quick fade-out
+  const volume = globals.volume * 0.01;
+  playChordWithFalloff(chord, 1.0, volume, 0.5); // Sharp, quick fade-out
 }
 
 /**
@@ -159,7 +164,8 @@ export function playDistortedAttack() {
  */
 export function playWetSquelch() {
   const chord = chords_obj["E_diminished"]; // Dissonant chord for a squelchy effect
-  playChordWithFalloff(chord, 1, 0.01, 1); // Short duration, quick fade-out
+  const volume = globals.volume * 0.01;
+  playChordWithFalloff(chord, 1, volume, 1); // Short duration, quick fade-out
 }
 
 
