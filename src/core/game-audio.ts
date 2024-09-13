@@ -208,7 +208,7 @@ export function playRustlingPaper() {
  * @param frequency 
  */
 const violin_audio_context = new AudioContext();
-export function playViolinSound(frequency: number, volume: number = 0.1) {
+export function playViolinSound(frequency: number, volume: number = 0.09) {
   // Ensure the audio context is not suspended (e.g., due to user inactivity)
   if (violin_audio_context.state === 'suspended') {
     violin_audio_context.resume();

@@ -27,13 +27,16 @@ const organs: GameEntityParams[] = [
     state: GameEntityState.AVAILABLE,
     cost: {
       [Resources.HORMONES]: {
-        quantity: 150,
+        quantity: 300,
       },
       [Resources.MATURITY]: {
-        quantity: 50,
+        quantity: 60,
+      },
+      [Resources.CONFIDENCE]: {
+        quantity: 25
       },
       [Resources.KNOWLEDGE]: {
-        quantity: 4
+        quantity: 5
       }
     },
     gain: {
@@ -72,10 +75,12 @@ const organs: GameEntityParams[] = [
     onPurchase() {
       if(this.cost) {
         const hormones_cost = this.cost[Resources['HORMONES']];
-        if(hormones_cost?.quantity) hormones_cost.quantity *= 1.5;
+        if(hormones_cost?.quantity) hormones_cost.quantity += 35;
       }
 
       if((this as GameEntity).purchase_count == 1) {
+        globals.ui_text?.updateMinionText(minion_lines['jerk']);
+
         const kidney = getEntityByName('form kidney');
         kidney?.becomeAvailable();
 
@@ -131,7 +136,8 @@ const organs: GameEntityParams[] = [
     state: GameEntityState.AVAILABLE, 
     gain: {
       [Resources.HORMONES]: {
-        quantity: 8
+        quantity: 800
+        // quantity: 9
       }
     },
     onPurchase() {
@@ -148,17 +154,19 @@ const organs: GameEntityParams[] = [
   },
   {
     name: "lungs",
-    // description: "Throat organs",
-    cooldown_duration: 4000,
+    cooldown_duration: 1000,
     state: GameEntityState.LOCKED, 
     cost: {
       [Resources.HORMONES]: {
-        quantity: 30,
+        quantity: 50,
       }
     },
     gain: {
       [Resources.MATURITY]: {
-        quantity: 1
+        quantity: 2
+      },
+      [Resources.CONFIDENCE]: {
+        quantity: 0.5
       }
     },
     sprite_data: {
@@ -169,8 +177,9 @@ const organs: GameEntityParams[] = [
     },
   },
   {
-    name: "fortify bones",
-    cooldown_duration: 10000,
+    name: "growth spurt",
+    cooldown_duration: 12000,
+    purchase_limit: 6,
     state: GameEntityState.LOCKED,
     cost: {
       [Resources.MATURITY]: {
@@ -193,7 +202,7 @@ const organs: GameEntityParams[] = [
         const maturity_cost = this.cost[Resources['MATURITY']];
         if(maturity_cost?.quantity) maturity_cost.quantity += 5;
         const confidence_cost = this.cost[Resources['CONFIDENCE']];
-        if(confidence_cost?.quantity) confidence_cost.quantity += 1;
+        if(confidence_cost?.quantity) confidence_cost.quantity += 2;
       }
     },
     sprite_data: {
@@ -219,11 +228,13 @@ const organs: GameEntityParams[] = [
     },
     gain: {
       [Resources.MATURITY]: {
-        per_second: .5
+        per_second: .6
       }
     },
     onPurchase() {
       if((this as GameEntity).purchase_count == 1) {
+        globals.ui_text?.updateMinionText(minion_lines['claws']);
+
         const violin = getEntityByName('practice violin');
         violin?.becomeAvailable();
       }
@@ -246,7 +257,7 @@ const organs: GameEntityParams[] = [
   },
   {
     name: "sharpen horns",
-    cooldown_duration: 8000,
+    cooldown_duration: 5000,
     state: GameEntityState.LOCKED, 
     cost: {
       [Resources['HORMONES']]: {
@@ -263,8 +274,8 @@ const organs: GameEntityParams[] = [
         const claws = getEntityByName('grow claws');
         claws?.becomeAvailable();
 
-        const tail = getEntityByName('shape hooves');
-        tail?.becomeAvailable();
+        const hooves = getEntityByName('shape hooves');
+        hooves?.becomeAvailable();
       }
     },
     sprite_data: {
@@ -312,12 +323,25 @@ const organs: GameEntityParams[] = [
     },
   },
   {
-    name: "tail",
-    cooldown_duration: 2000,
-    state: GameEntityState.LOCKED, 
-    gain: {
+    name: "grow tail",
+    cooldown_duration: 9000,
+    state: GameEntityState.LOCKED,
+    purchase_limit: 3,
+    cost: {
+      [Resources.HORMONES]: {
+        quantity: 200
+      },
       [Resources.MATURITY]: {
-        per_second: 1
+        per_second: 0.5
+      },
+      [Resources.CONFIDENCE]: {
+        quantity: 5,
+      }
+    },
+    gain: {
+      [Resources.CONFIDENCE]: {
+        per_second: 0.1,
+        limit: 2
       }
     },
     sprite_data: {
@@ -392,6 +416,9 @@ const music = [
     cooldown_duration: note_length * violin_num_notes,
     state: GameEntityState.LOCKED, 
     cost: {
+      [Resources.HORMONES]: {
+        quantity: 50
+      },
       [Resources.MATURITY]: {
         per_second: .2, 
         quantity: 25,
@@ -452,7 +479,7 @@ const books: GameEntityParams[] = [
         quantity: 150
       },
       [Resources.MATURITY]: {
-        quantity: 10
+        quantity: 15
       },
       [Resources.CONFIDENCE]: {
         quantity: 5
@@ -467,11 +494,15 @@ const books: GameEntityParams[] = [
       },
     },
     onPurchase() {
+      // Unlock lungs
+      const lungs = getEntityByName('lungs');
+      lungs?.becomeAvailable();
+
       // Unlock next book
       const black_arts = getEntityByName('the black arts');
       black_arts?.becomeAvailable();
 
-      const bones = getEntityByName('fortify bones');
+      const bones = getEntityByName('growth spurt');
       bones?.becomeAvailable();
 
       globals.ui_text?.updateMinionText(minion_lines['studies']);
@@ -489,19 +520,30 @@ const books: GameEntityParams[] = [
     purchase_limit: 1,
     cost: {
       [Resources.HORMONES]: {
-        quantity: 200
+        quantity: 220
       },
       [Resources.MATURITY]: {
-        quantity: 20
+        quantity: 30
       },
       [Resources.CONFIDENCE]: {
-        quantity: 10
+        quantity: 6
       }
     },
     gain: {
       [Resources.CONFIDENCE]: {
-        per_second: 0.5
+        per_second: 0.2,
       },
+      [Resources.KNOWLEDGE]: {
+        quantity: 2
+      },
+    },
+    onPurchase() {
+      // Unlock next book
+      const dantes = getEntityByName('dantes inferno');
+      dantes?.becomeAvailable();
+
+      const tail = getEntityByName('grow tail');
+      tail?.becomeAvailable();
     },
     sprite_data: {
       x: book_x + book_space * 1,
@@ -511,13 +553,32 @@ const books: GameEntityParams[] = [
     },
   },
   {
-    name: "Dantes Inferno",
+    name: "dantes inferno",
     purchase_limit: 1,
     state: GameEntityState.LOCKED, 
+    cost: {
+      [Resources.HORMONES]: {
+        quantity: 200
+      },
+      [Resources.MATURITY]: {
+        quantity: 30
+      },
+      [Resources.CONFIDENCE]: {
+        quantity: 15
+      }
+    },
     gain: {
+      [Resources.CONFIDENCE]: {
+        limit: 10
+      },
       [Resources.KNOWLEDGE]: {
         quantity: 1
       }
+    },
+    onPurchase() {
+      // Unlock next book
+      const advice = getEntityByName('advice for a teenage devil');
+      advice?.becomeAvailable();
     },
     sprite_data: {
       x: book_x + book_space * 2,
@@ -530,10 +591,28 @@ const books: GameEntityParams[] = [
     name: "advice for a teenage devil",
     purchase_limit: 1,
     state: GameEntityState.LOCKED, 
+    cost: {
+      [Resources.HORMONES]: {
+        quantity: 300
+      },
+      [Resources.MATURITY]: {
+        quantity: 50
+      },
+      [Resources.CONFIDENCE]: {
+        quantity: 25
+      }
+    },
     gain: {
       [Resources.KNOWLEDGE]: {
-        quantity: 1
+        quantity: 2
       }
+    },
+    onPurchase() {
+      // Unlock eye
+      const eye = getEntityByName('evil eye');
+      eye?.becomeAvailable();
+
+      globals.ui_text?.updateMinionText(minion_lines['advice']);
     },
     sprite_data: {
       x: book_x + book_space * 3 - 1,
@@ -544,11 +623,13 @@ const books: GameEntityParams[] = [
   },
   // Volume buttons
   {
+    name: "MUTE",
     state: GameEntityState.AVAILABLE, 
     onClick() {
       const self = this as GameEntity;
       globals.volume = 1 - globals.volume;
       self.active_interactive_canvases = self.sprite_frames_interactive_canvases.next();
+      globals.volume === 0 ? this.name = 'UNMUTE' : this.name = 'MUTE';
     },
     sprite_data: {
       x: 275,
@@ -558,6 +639,11 @@ const books: GameEntityParams[] = [
     },
   },
 ];
+
+// Add audio
+books.map(book_params => {
+  book_params.clickSoundFn = playCreepyAmbience;
+});
 
 ////////////////////////////////////////////////
 // ICONS

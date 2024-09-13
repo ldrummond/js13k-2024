@@ -3,6 +3,9 @@ import { dpr, globals, hitmask_canvas, container } from "./constants";
 const hitmask_ctx = hitmask_canvas.getContext('2d', {willReadFrequently: true})!;
 hitmask_ctx.scale(dpr, dpr);
 let hitmask_rect = hitmask_canvas.getBoundingClientRect();
+window.addEventListener('resize', () => {
+  hitmask_rect = hitmask_canvas.getBoundingClientRect();
+});
 
 // TODO: Remove
 hitmask_canvas.id = 'hitmask';

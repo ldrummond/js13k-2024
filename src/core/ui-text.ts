@@ -151,7 +151,7 @@ export class UIText {
         Object.entries(entity_cost || []).map(([resource_name, transaction_detail]: [string, EntityTransactionDetail]) => {
           const resource_details = resource_list[resource_name as unknown as number];
           const resource_icon_char = resource_details?.placeholder_char; 
-          const cost_quantity = transaction_detail.quantity;
+          const cost_quantity = transaction_detail.quantity && Math.round(transaction_detail.quantity);
           const cost_ps = transaction_detail.per_second;
   
           let string_color = afford_color;
@@ -164,7 +164,7 @@ export class UIText {
           if(cost_ps) {
             const can_afford_ps = resource_details.increase_per_second >= cost_ps;
             // Remove leading 0 from decimal
-            const cost_ps_string = (`${(cost_ps + '').replace(/0(\.\d+)/, '$1')}/s${resource_icon_char} `);
+            const cost_ps_string = (`${(cost_ps.toFixed(1) + '').replace(/0(\.\d+)/, '$1')}/s${resource_icon_char} `);
             string_color = can_afford_ps ? afford_color : cant_afford_color;
             c_string_x += sprite_text.fillText(this.ui_ctx, cost_ps_string, detail_x + c_string_x, detail_y + 7, detail_font_size, detail_font_spacing, undefined, string_color) / pixel_size;
           }
@@ -181,12 +181,13 @@ export class UIText {
           const gain_ps = gain_detail.per_second;
           const gain_max = gain_detail.limit; 
 
+          // remove 0 from decimal
           if(gain_quantity) gain_string += `+${gain_quantity}${resource_icon_char}`;
-          if(gain_ps) gain_string += `+${gain_ps}/s${resource_icon_char}`;
+          if(gain_ps) gain_string += `+${(gain_ps.toFixed(1) + '').replace(/0(\.\d+)/, '$1')}/s${resource_icon_char}`;
           if(gain_max) gain_string += `+${gain_max}${resource_icon_char}MAX`;
         }).join(',');
 
-        if(is_evil_eye) gain_string = "" + icon_eye_placeholder_char + 'evil eye';
+        if(is_evil_eye) gain_string = "" + icon_eye_placeholder_char + ' evil eye';
 
         // Offset if entity cost
         detail_x += 60;
@@ -216,11 +217,6 @@ export class UIText {
     const rect_y = (tooltip_y - 12) * pixel_size;
     const rect_w = 150 * pixel_size;
     const rect_h = 25 * pixel_size;
-
-    // this.ui_ctx.fillStyle = 'blue';
-    // this.ui_ctx.fillRect(rect_x, rect_y, rect_w, rect_h);
-
-    // TODO: Clear the whole width
 
     new Animator(1000, 1, (percent_complete) => {
       const offset = -10 * percent_complete;
@@ -264,7 +260,6 @@ export class UIText {
       const shorter_side_length = progress_side_length * 0.8;
 
       // Fill up based on progress
-      // TODO: Figure out how to show more progress
       this.diamond_progress_ctx.clearRect(0, 0, progress_canvas_width, progress_canvas_width);
       const percent_source_width = diamond_base_size * percent_full;
       const percent_progress_width = progress_width * percent_full;

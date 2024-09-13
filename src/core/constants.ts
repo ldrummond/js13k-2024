@@ -137,15 +137,18 @@ export const minion_width = grid_col(22);
 export const minion_height = grid_row(1.5);
 export const minion_lines = {
   "start": "See that little runt? He just turned 13 and is starting puberty.",
-  "encourage": "He needs a bit of a nudge. Click the brain to get his hormones pumping.",
-  "brain_clicked": "Nice! Look at him squirm. Get more hormones and grow that pituitary.",
+  "encourage": "He needs a bit of a nudge. Click the brain to get the hormones pumping.",
+  "brain_clicked": "Nice! Look at him squirm. Get more hormones and grow the pituitary.",
+  "jerk": "Hehe what a jerk. They grow up so fast",
+  "claws": "Be careful! Those things are sharp.",
   "kidney": "Hmm not sure what that does.",
   "violin0": "What is this novel form of torture!?",
   "violin1": "Agh! The agony!",
   "violin2": "What horrible sounds!",
   "violin3": "Where did you get this evil device!?",
   "violin4": "No amount of practice will be enough!",
-  "studies": "Keep studying. The devil is in the details. He he"
+  "studies": "Keep studying. The devil is in the details. Hehe",
+  "advice": "Every devil keeps that in their back pocket."
 };
 
 // Dom
@@ -219,7 +222,7 @@ export const hormones: ResourceDetails = {
   type: Resources.HORMONES,
   icon_rect: spritesheet_data['iconHormones'],
   placeholder_char: '{',
-  quantity: 100,
+  quantity: 40,
   limit: 100,
   increase_per_second: 0,
   locked_state: false,
@@ -256,7 +259,7 @@ export const knowledge: ResourceDetails = {
   icon_rect: spritesheet_data['iconScroll'],
   placeholder_char: '~',
   quantity: 0,
-  limit: 4,
+  limit: 5,
   increase_per_second: 0,
   locked_state: true,
   should_unlock: () => false

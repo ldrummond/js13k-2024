@@ -34,7 +34,7 @@ function spritesheetLoaded() {
   // Add Loading Text
   // sprite_text.fillText(loading_ctx, 'start puberty', window_width / 2, window_height / 2 - 30, 2, undefined, rgb_gold);
   setTimeout(() => {
-    sprite_text.fillText(loading_ctx, 'Infernal Adolescence', 20, 60, 12, 0.12, undefined, rgb_red, 60);
+    sprite_text.fillText(loading_ctx, 'Infernal Adolescence', 28, 60, 12, 0.12, undefined, rgb_red, 60);
   }, 100);
 
   // Init sprites
@@ -71,7 +71,7 @@ function spritesheetLoaded() {
   function drawCharacterGradientMask() {
     main_ctx.fillStyle = char_grad;
     main_ctx.globalCompositeOperation = 'darken';
-    main_ctx.globalAlpha = 0.6;
+    main_ctx.globalAlpha = 0.5;
     main_ctx.fillRect(char_x + char_border_inset + 2, char_y + char_border_inset + 2, char_w - char_border_inset * 2, char_h - char_border_inset * 2);
     main_ctx.globalCompositeOperation = 'source-over';
     main_ctx.globalAlpha = 1;
@@ -147,7 +147,6 @@ function spritesheetLoaded() {
         ui_text.render(main_ctx);
 
         // Render sprites
-        // TODO: sprites on background canvas?
         globals.sprites.map(s => s.render(main_ctx));
 
         // Update logic for resource quantity

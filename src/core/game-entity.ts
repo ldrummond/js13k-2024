@@ -366,6 +366,7 @@ export class GameEntity extends Sprite {
           const ps_change = resource_gain_details.per_second || 0;
           const limit_change = resource_gain_details.limit || 0;
           resource_details.quantity += quantity_change;
+          resource_details.quantity = Math.min(resource_details.quantity, resource_details.limit);
           resource_details.increase_per_second += ps_change;
           resource_details.limit += limit_change; 
 
