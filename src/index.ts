@@ -1,4 +1,4 @@
-import { char_border_inset, char_h, char_w, char_x, char_y, container_height, container_width, globals, hsl_darkred, hsl_offblack, interval, loading_canvas, loading_ctx, main_ctx, minion_lines, resource_list, rgb_red, spritesheet_img } from './core/constants';
+import { char_border_inset, char_h, char_w, char_x, char_y, container_height, container_width, globals, hsl_darkred, hsl_offblack, interval, loading_canvas, loading_ctx, main_ctx, minion_lines, pixel_size, resource_list, rgb_red, spritesheet_img, window_height, window_width } from './core/constants';
 import { GameEntity } from './core/game-entity';
 import { UIText } from './core/ui-text';
 import Sprite from './core/sprite';
@@ -9,6 +9,7 @@ import { Animator } from './core/animator';
 import { renderBackground } from './core/background';
 import { sprite_text } from './core/sprite-text';
 import { ranHSL } from './core/utils';
+import { playBackgroundMusic } from './core/game-audio';
 
 // Load Main Spritesheet
 // spritesheet_img.crossOrigin = "Anonymous";
@@ -52,10 +53,18 @@ function spritesheetLoaded() {
   // Add start button and loading text
   const start_button = document.getElementById("start")!;
 
+  const intro_text = 'Infernal Adolescence';
+  const intro_size = 12;
+  const intro_cadence = 80;
+  const sentence_width = (intro_text.length * (intro_size + 0.12 * intro_size));
+  const intro_x = (window_width / 2) / pixel_size - sentence_width / 2; 
+  const intro_y = (window_height / 4) / pixel_size;
+  sprite_text.fillText(loading_ctx, intro_text, intro_x, intro_y, intro_size, 0.12, undefined, rgb_red, intro_cadence);
+
   setTimeout(() => {
-    sprite_text.fillText(loading_ctx, 'Infernal Adolescence', 28, 60, 12, 0.12, undefined, rgb_red, 60);
     start_button.style.opacity = '1';
-  }, 100);
+  }, intro_text.length * intro_cadence + 200);
+
   if(skip_loading) {
     start();
   }
@@ -103,7 +112,7 @@ function spritesheetLoaded() {
     });
 
     // TODO: Decide about background
-    // playBackgroundMusic();
+    playBackgroundMusic();
 
     // Add custom cursor
     // const buttons_frame = spritesheet_json.frames.find((frame: SpritesheetFrame) => frame.filename === "cursor.aseprite").frame;

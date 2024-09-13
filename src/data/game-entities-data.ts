@@ -136,8 +136,7 @@ const organs: GameEntityParams[] = [
     state: GameEntityState.AVAILABLE, 
     gain: {
       [Resources.HORMONES]: {
-        quantity: 800
-        // quantity: 9
+        quantity: 9
       }
     },
     onPurchase() {

@@ -93,6 +93,8 @@ export function playBackgroundMusic() {
 function playChordWithFalloff(chord: Chord, duration: number, initial_volume: number, falloff_duration: number) {
   const now = audio_context.currentTime;
 
+  initial_volume *= globals.volume;
+
   chord.map((freq) => {
       // Create an oscillator for each frequency
       const oscillator = audio_context.createOscillator();
@@ -180,7 +182,7 @@ export function playWetSquelch() {
  * @param frequency 
  */
 const violin_audio_context = new AudioContext();
-export function playViolinSound(frequency: number, volume: number = 0.09) {
+export function playViolinSound(frequency: number, volume: number = 0.02) {
   // Ensure the audio context is not suspended (e.g., due to user inactivity)
   if (violin_audio_context.state === 'suspended') {
     violin_audio_context.resume();

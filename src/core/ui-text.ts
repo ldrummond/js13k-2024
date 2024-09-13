@@ -164,7 +164,7 @@ export class UIText {
           if(cost_ps) {
             const can_afford_ps = resource_details.increase_per_second >= cost_ps;
             // Remove leading 0 from decimal
-            const cost_ps_string = (`${(cost_ps.toFixed(1) + '').replace(/0(\.\d+)/, '$1')}/s${resource_icon_char} `);
+            const cost_ps_string = (`-${(cost_ps.toFixed(1) + '').replace(/0(\.\d+)/, '$1')}/s${resource_icon_char} `);
             string_color = can_afford_ps ? afford_color : cant_afford_color;
             c_string_x += sprite_text.fillText(this.ui_ctx, cost_ps_string, detail_x + c_string_x, detail_y + 7, detail_font_size, detail_font_spacing, undefined, string_color) / pixel_size;
           }
