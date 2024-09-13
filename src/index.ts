@@ -13,7 +13,7 @@ import { ranHSL } from './core/utils';
 // Load Main Spritesheet
 // spritesheet_img.crossOrigin = "Anonymous";
 spritesheet_img.onload = spritesheetLoaded;
-const skip_loading = true; 
+const skip_loading = false; 
 
 console.log("Load Spritesheet", spritesheet_img);
 /**
@@ -85,7 +85,7 @@ function spritesheetLoaded() {
 
     // 
     start_button.remove();
-    const steps = skip_loading ? 1 : 40;
+    const steps = skip_loading ? 1 : 30;
     loading_ctx.fillStyle = 'red';
    
     new Animator(100, steps, undefined, (repeats_left: number) => {
@@ -99,6 +99,9 @@ function spritesheetLoaded() {
         loading_canvas.remove();
       }
     });
+
+    // TODO: Decide about background
+    // playBackgroundMusic();
 
     // Add custom cursor
     // const buttons_frame = spritesheet_json.frames.find((frame: SpritesheetFrame) => frame.filename === "cursor.aseprite").frame;

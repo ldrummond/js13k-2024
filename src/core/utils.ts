@@ -157,7 +157,7 @@ export function fillRuleWithRandom(
   ctx.fillRect(x, y, w, pixel_size);
 
   for (let c = 0; c <= pixel_count_w; c++) {
-    const rand = Math.random() > 0.75;
+    const rand = Math.random() > .75;
     if(rand) {
       ctx.fillStyle = ranHSL(hsl, variance);
       ctx.fillRect(c * pixel_size + x, y, pixel_size, pixel_size);

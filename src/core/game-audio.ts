@@ -1,114 +1,205 @@
-/* eslint-disable guard-for-in */
-
+////////////////////////////////////////////////
+// 
+// For Audio, needed some help from CHATGPT, and inspo from XEM 
+// 
+////////////////////////////////////////////////
 import { globals } from "./constants";
 
+
+type Chord = [number, number, number];
+
 const audio_context = new AudioContext();
-audio_context.addEventListener("statechange", e => {
-  console.log(e);
-});
-const gain_node = audio_context.createGain();
-let background_music: boolean = false; 
-let note_duration = .5;
-let starttime = 0;
 
-/**
- * 
- * XEM: Tiny Music Player
- * https://xem.github.io/miniMusic/simple.html
- * 
- * Frequency (HZ): 70; 
- * Duration (MS): 550; 
- * @returns 
- */
-export function startBackgroundMusic() {
-  if(background_music) return;
-  background_music = true; 
-  audio_context.resume();
-  const notes = [3,3,4,4,3,3,,2,2,2,2,1,0];
-  const notes_duration = notes.length * note_duration * 1000 + 1000;
-  
-  // Play song
-  notes.map(playNote);
-
-  // Play again
-  setInterval(() => {
-    starttime += notes_duration;
-    notes.map(playNote);
-  }, notes_duration);
-}
-
-/**
- * XEM: Tiny Music Player
- * https://xem.github.io/miniMusic/simple.html
- * 
- * @param note 
- * @param index 
- */
-export function playNote(note: number | undefined, index: number) {
-  audio_context.resume();
-  if(note) {
-    console.log("Play note:", note);
-    
-    const oscillator = audio_context.createOscillator();
-    oscillator.connect(gain_node);
-    gain_node.connect(audio_context.destination);
-    oscillator.start(starttime + index * note_duration);
-    oscillator.frequency.setValueAtTime(70*1.06**(13-note), starttime + index * note_duration);
-    gain_node.gain.setValueAtTime(globals.volume, starttime + index * note_duration),
-    gain_node.gain.setTargetAtTime(.0001, starttime + index * note_duration + .48, .005),
-    oscillator.stop(starttime + index * note_duration + .49);
-  }
-}
-
-/**
- * 
- * XEM: MiniSoundEditor
- * 
- * @param soundFn 
- */
-const t=(i: number, n: number)=>(n-i)/n;
-
-/**
- * Nudge Sound
- * XEM: MiniSoundEditor
- */
-export const soundNudge = (i:number): number | null => {
-  var n=6e3;
-  if (i > n) return null;
-  var q = t(i,n);
-  return Math.sin(i*0.01*Math.sin(0.009*i+Math.sin(i/200))+Math.sin(i/100))*q*q;
+const chords_obj: { [key: string]: Chord } = {
+  "C_major": [261.63, 329.63, 392.00], // C major (C, E, G)
+  "G_major": [196.00, 246.94, 392.00], // G major (G, B, D)
+  "F_major": [174.61, 220.00, 349.23], // F major (F, A, C)
+  "A_minor": [220.00, 261.63, 329.63], // A minor (A, C, E)
+  "D_minor": [293.66, 349.23, 440.00], // D minor (D, F, A)
+  "B_diminished": [246.94, 311.13, 392.00], // B diminished (B, D, F)
+  "D_major": [146.83, 185.00, 220.00], // D major (D, F#, A)
+  "E_major": [164.81, 207.65, 246.94], // E major (E, G#, B)
+  "C_minor": [130.81, 155.56, 196.00], // C minor (C, Eb, G)
+  "F_minor": [174.61, 207.65, 261.63], // F minor (F, Ab, C)
+  "G7": [196.00, 246.94, 293.66], // G7 (G, B, D, F)
+  "Cmaj7": [130.81, 164.81, 196.00], // Cmaj7 (C, E, G, B)
+  "E_diminished": [164.81, 207.65, 246.94], // E diminished (E, G, Bb)
+  "G_minor": [196.00, 233.08, 293.66], // G minor (G, Bb, D)
+  "ultra_low": [10, 20.60, 10], // Ultra-Low Chord (C0, E0, G0)
+  "ultra_high": [4186.01, 5274.04, 6271.93] // Ultra-High Chord (C8, E8, G8)
 };
 
-
-export const soundError = (i: number) => Math.abs(((2*i % 4096) / 4096) - 1) * Math.exp(-i/6000);
-
-
 /**
  * 
- * XEM: MiniSoundEditor
- * 
- * @param soundFn 
+ * @param chords 
+ * @param duration 
+ * @param interval 
+ * @param initial_volume 
+ * @param falloff_duration 
  */
-export function playSoundFn(soundFn: (i: number) => number | null) {
-  const ac = new AudioContext();
-  const channels = 1; 
-  const length = 96000;
-  const sample_rate = 48000;
-  const audio_buffer = ac.createBuffer(channels, length, sample_rate);
-  let buffer_data = audio_buffer.getChannelData(0);
-  for(let i = length; i--;) {
-    let sound_data = soundFn(i);
-    if(sound_data) {buffer_data[i] = sound_data;}
-    let source = audio_context.createBufferSource();
-    source.buffer = audio_buffer;
-    source.connect(audio_context.destination);
-    source.start();
-  }
+function playChordsLoop(chords: Chord[], duration: number, interval: number, initial_volume: number, falloff_duration: number) {
+  let chord_index = 0;
+
+  setInterval(() => {
+      playChordWithFalloff(chords[chord_index], duration, initial_volume, falloff_duration);
+      chord_index = (chord_index + 1) % chords.length; // Loop through chords
+  }, interval);
 }
 
 /**
  * 
- * Function to play a violin-like sound with adjustable pitch
+ */
+export function playBackgroundMusic() {
+  // Resume the audio context if it was suspended due to user interaction
+  if (audio_context.state === 'suspended') {
+      audio_context.resume();
+  }
+  // const song_chords_names = [
+  //   "E_diminished",   // Edim
+  //   "A_minor",        // Am
+  //   "G_minor",        // Gm
+  //   "E_diminished",   // Edim
+  //   "F_minor",        // F
+  //   "E_diminished",   // Bdim
+  //   "G_minor",        // Gm
+  //   "E_diminished",   // Bdim
+  //   "C_minor",        // Cm
+  //   "A_minor",         // Am (back to the start)
+  // ];
+  const song_chords_names = [
+    "E_diminished",   // Edim
+    "A_minor",        // Am
+    "E_diminished",   // Edim
+    "F_minor",        // F
+    "E_diminished",   // Bdim
+    "G_minor",        // Gm
+    "E_diminished",   // Bdim
+    "C_minor",        // Cm
+  ];
+  const song_chords = song_chords_names.map(chord_name => chords_obj[chord_name]);
+  const chord_duration = 2; // Duration for each chord in seconds
+  const initial_volume = 0.008; // Starting volume
+  const falloff_duration = 1.0; // Falloff duration in seconds
+  playChordsLoop(song_chords, chord_duration, 2000, initial_volume, falloff_duration); // Play chords in a loop with volume set to 0.1
+}
+
+/**
+ * 
+ * @param chord 
+ * @param duration 
+ * @param initial_volume 
+ * @param falloff_duration 
+ */
+function playChordWithFalloff(chord: Chord, duration: number, initial_volume: number, falloff_duration: number) {
+  const now = audio_context.currentTime;
+
+  chord.map((freq) => {
+      // Create an oscillator for each frequency
+      const oscillator = audio_context.createOscillator();
+      const gain_node = audio_context.createGain();
+
+      oscillator.type = 'sine'; // Wave type: sine, square, triangle, sawtooth
+      oscillator.frequency.setValueAtTime(freq, now); // Set frequency
+      gain_node.gain.setValueAtTime(initial_volume, now); // Set initial volume
+
+      // Create falloff effect: decrease the gain to 0 over `falloff_duration` seconds
+      gain_node.gain.linearRampToValueAtTime(0, now + falloff_duration);
+
+      // Connect oscillator to gain node and gain node to audio context destination
+      oscillator.connect(gain_node);
+      gain_node.connect(audio_context.destination);
+
+      // Start and stop the oscillator
+      oscillator.start(now);
+      oscillator.stop(now + duration); // Stop after the specified duration
+
+      // Clean up after playing
+      oscillator.onended = () => {
+          oscillator.disconnect();
+          gain_node.disconnect();
+      };
+  });
+}
+
+
+/**
+ * 
+ */
+export function playBookOpeningSound() {
+  const book_opening_chord = chords_obj['G_major']; // G major chord for example
+  playChordWithFalloff(book_opening_chord, 1.5, 0.02, 1.0);
+}
+
+/**
+ * 
+ */
+export function playMysteriousWhisper() {
+  const chord = chords_obj["C_minor"]; // Minor chord for a mysterious tone
+  playChordWithFalloff(chord, 2.0, 0.02, 1.0); // Quick fade-out
+}
+
+/**
+ * 
+ */
+export function playCreepyAmbience() {
+  const chord = chords_obj["E_diminished"]; // Dissonant chord for a creepy effect
+  playChordWithFalloff(chord, 5.0, 0.2, 4.0); // Long fade-in and fade-out
+}
+
+/**
+ * 
+ */
+export function playDistortedAttack() {
+  const chord = chords_obj["D_minor"]; // Minor chord for a dark tone
+  playChordWithFalloff(chord, 1.0, 0.1, 0.5); // Sharp, quick fade-out
+}
+
+/**
+ * 
+ */
+export function playWetSquelch() {
+  const chord = chords_obj["E_diminished"]; // Dissonant chord for a squelchy effect
+  playChordWithFalloff(chord, 0.5, 0.1, 0.2); // Short duration, quick fade-out
+}
+
+/**
+ * 
+ */
+export function playRustlingPaper() {
+  const chords = [
+      chords_obj["E_diminished"], // Dissonant chord for the effect
+      chords_obj["B_diminished"],
+      chords_obj["G_minor"],
+      chords_obj["C_minor"]
+  ];
+
+  let current_chord_index = 0;
+
+  function playNextChord() {
+      const chord = chords[current_chord_index];
+      
+      // Play the chord with a very short duration and quick fade-out
+      playChordWithFalloff(chord, 0.1, 0.1, 0.1); // Short duration, rapid fade-out
+      
+      // Move to the next chord in the array
+      current_chord_index = (current_chord_index + 1) % chords.length; // Loop back to the start
+      
+      // Schedule the next chord to be played at a random interval
+      const nextInterval = Math.random() * 100 + 50; // Random interval between 50ms and 150ms
+      setTimeout(playNextChord, nextInterval); // Schedule the next chord
+  }
+
+  // Start the rustling paper effect
+  playNextChord();
+
+  // Stop after a certain duration
+  setTimeout(() => {
+      current_chord_index = chords.length; // Exit loop
+  }, 1000); // Play effect for 1 second
+}
+/**
+ * 
+ *  Function to play a violin-like sound with adjustable pitch
  * 
  *  playViolinSound(440); // A4 note (standard tuning)
  *  playViolinSound(523.25); // C5 note
@@ -116,29 +207,30 @@ export function playSoundFn(soundFn: (i: number) => number | null) {
  * 
  * @param frequency 
  */
-export function playViolinSound(frequency: number) {
+const violin_audio_context = new AudioContext();
+export function playViolinSound(frequency: number, volume: number = 0.1) {
   // Ensure the audio context is not suspended (e.g., due to user inactivity)
-  if (audio_context.state === 'suspended') {
-    audio_context.resume();
+  if (violin_audio_context.state === 'suspended') {
+    violin_audio_context.resume();
   }
-  const volume = globals.volume * 0.5;
-
+  const total_volume = globals.volume * volume;
+  
   // Create an oscillator node
-  const oscillator = audio_context.createOscillator();
+  const oscillator = violin_audio_context.createOscillator();
   oscillator.type = 'sawtooth'; // 'sawtooth' waveform to simulate a string-like sound
-  oscillator.frequency.setValueAtTime(frequency, audio_context.currentTime); // Set the desired pitch (frequency in Hz)
+  oscillator.frequency.setValueAtTime(frequency, violin_audio_context.currentTime); // Set the desired pitch (frequency in Hz)
 
   // Create a gain node to control the volume and simulate the sound envelope
-  const gainNode = audio_context.createGain();
-  gainNode.gain.setValueAtTime(0, audio_context.currentTime); // Start at zero volume
-  gainNode.gain.linearRampToValueAtTime(volume, audio_context.currentTime + 0.05); // Quick attack to simulate a bow stroke
-  gainNode.gain.exponentialRampToValueAtTime(0.001, audio_context.currentTime + 1.5); // Slow decay to fade out
+  const gainNode = violin_audio_context.createGain();
+  gainNode.gain.setValueAtTime(0, violin_audio_context.currentTime); // Start at zero volume
+  gainNode.gain.linearRampToValueAtTime(total_volume, violin_audio_context.currentTime + 0.05); // Quick attack to simulate a bow stroke
+  gainNode.gain.exponentialRampToValueAtTime(0.001, violin_audio_context.currentTime + 1.5); // Slow decay to fade out
 
   // Connect the nodes
   oscillator.connect(gainNode);
-  gainNode.connect(audio_context.destination);
+  gainNode.connect(violin_audio_context.destination);
 
   // Start the oscillator and stop it after 1.5 seconds
-  oscillator.start(audio_context.currentTime);
-  oscillator.stop(audio_context.currentTime + 1.5); // Stops after 1.5 seconds
+  oscillator.start(violin_audio_context.currentTime);
+  oscillator.stop(violin_audio_context.currentTime + 1.5); // Stops after 1.5 seconds
 }

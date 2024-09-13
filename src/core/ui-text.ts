@@ -7,6 +7,10 @@ import { GameEntity, EntityTransactionDetail } from "@/core/game-entity";
 const progress_canvas_width = 20;
 const diamond_base_size = 20;
 const minion_text_type_delay = 50;
+const afford_color = rgb_gold;
+const cant_afford_color = rgb_red; 
+const detail_font_size = 3;
+const detail_font_spacing = .2;
 
 export class UIText {
   text: string;
@@ -21,6 +25,8 @@ export class UIText {
   blue_diamond: HTMLCanvasElement;
   diamond_progress_canvas: HTMLCanvasElement;
   diamond_progress_ctx: CanvasRenderingContext2D;
+  tooltip_canvas: HTMLCanvasElement;
+  tooltip_ctx: CanvasRenderingContext2D;
 
   constructor() {
     // Add footer elements
@@ -36,6 +42,14 @@ export class UIText {
     ui_ctx.imageSmoothingEnabled = false;
     this.ui_canvas = ui_canvas;
     this.ui_ctx = ui_ctx;
+
+    // Tooltip canvas
+    const [ tooltip_canvas, tooltip_ctx ] = dupeCanvas(main_canvas);
+    container.append(tooltip_canvas);
+    tooltip_ctx.scale(dpr, dpr);
+    tooltip_ctx.imageSmoothingEnabled = false; 
+    this.tooltip_canvas = tooltip_canvas;
+    this.tooltip_ctx = tooltip_ctx;
     
     // Make diamond elements
     const [diamond_canvas, diamond_ctx] = dupeCanvas(main_canvas);
@@ -114,7 +128,6 @@ export class UIText {
       const entity_cost = active_entity.cost;
       const entity_gain = active_entity.gain;
       if(entity_purchase_limit) entity_name += ': ';
-
    
       // Name
       sprite_text.fillText(this.ui_ctx, entity_name, info_panel_x / pixel_size + 3, info_text_y / pixel_size + 3, 2.7, 0.3, undefined, rgb_offwhite);
@@ -128,36 +141,35 @@ export class UIText {
 
       const detail_y = info_text_y / pixel_size + 13;
       let detail_x = (info_panel_x) / pixel_size + 3;
-      const afford_color = rgb_gold;
-      const cant_afford_color = rgb_red; 
-      const detail_font_size = 3;
-
-      // Render Cost
-      sprite_text.fillText(this.ui_ctx, "COST: ", detail_x, detail_y, detail_font_size, 0.3, undefined, rgb_offwhite);
-      let c_string_x = 0;
-
-      // Render individual resource costs
-      Object.entries(entity_cost || []).map(([resource_name, transaction_detail]: [string, EntityTransactionDetail]) => {
-        const resource_details = resource_list[resource_name as unknown as number];
-        const resource_icon_char = resource_details?.placeholder_char; 
-        const cost_quantity = transaction_detail.quantity;
-        const cost_ps = transaction_detail.per_second;
-
-        let string_color = afford_color;
-        if(cost_quantity) {
-          const can_afford_quantity = resource_details.quantity >= cost_quantity;
-          const cost_quantity_string = (`+${cost_quantity} ${resource_icon_char}`);
-          string_color = can_afford_quantity ? afford_color : cant_afford_color;
-          c_string_x += sprite_text.fillText(this.ui_ctx, cost_quantity_string, detail_x + c_string_x, detail_y + 7, detail_font_size, 0.3, undefined, string_color) / pixel_size;
-        }
-        if(cost_ps) {
-          const can_afford_ps = resource_details.increase_per_second >= cost_ps;
-          const cost_ps_string = (`+${cost_ps}/s ${resource_icon_char}`);
-          string_color = can_afford_ps ? afford_color : cant_afford_color;
-          c_string_x += sprite_text.fillText(this.ui_ctx, cost_ps_string, detail_x + c_string_x, detail_y + 7, detail_font_size, 0.3, undefined, string_color) / pixel_size;
-        }
-      });
-
+      
+      if(entity_cost || entity_gain) {
+        // Render Cost
+        sprite_text.fillText(this.ui_ctx, "COST: ", detail_x, detail_y, detail_font_size, detail_font_spacing, undefined, rgb_offwhite);
+        let c_string_x = 0;
+        
+        // Render individual resource costs
+        Object.entries(entity_cost || []).map(([resource_name, transaction_detail]: [string, EntityTransactionDetail]) => {
+          const resource_details = resource_list[resource_name as unknown as number];
+          const resource_icon_char = resource_details?.placeholder_char; 
+          const cost_quantity = transaction_detail.quantity;
+          const cost_ps = transaction_detail.per_second;
+  
+          let string_color = afford_color;
+          if(cost_quantity) {
+            const can_afford_quantity = resource_details.quantity >= cost_quantity;
+            const cost_quantity_string = (`${cost_quantity}${resource_icon_char} `);
+            string_color = can_afford_quantity ? afford_color : cant_afford_color;
+            c_string_x += sprite_text.fillText(this.ui_ctx, cost_quantity_string, detail_x + c_string_x, detail_y + 7, detail_font_size, detail_font_spacing, undefined, string_color) / pixel_size;
+          }
+          if(cost_ps) {
+            const can_afford_ps = resource_details.increase_per_second >= cost_ps;
+            // Remove leading 0 from decimal
+            const cost_ps_string = (`${(cost_ps + '').replace(/0(\.\d+)/, '$1')}/s${resource_icon_char} `);
+            string_color = can_afford_ps ? afford_color : cant_afford_color;
+            c_string_x += sprite_text.fillText(this.ui_ctx, cost_ps_string, detail_x + c_string_x, detail_y + 7, detail_font_size, detail_font_spacing, undefined, string_color) / pixel_size;
+          }
+        });
+      }
 
       // Render Gain
       if(entity_gain) {
@@ -169,17 +181,17 @@ export class UIText {
           const gain_ps = gain_detail.per_second;
           const gain_max = gain_detail.limit; 
 
-          if(gain_quantity) gain_string += `+${gain_quantity} ${resource_icon_char}`;
-          if(gain_ps) gain_string += `+${gain_ps}/s ${resource_icon_char}`;
-          if(gain_max) gain_string += `+${gain_max}:MAX ${resource_icon_char}`;
+          if(gain_quantity) gain_string += `+${gain_quantity}${resource_icon_char}`;
+          if(gain_ps) gain_string += `+${gain_ps}/s${resource_icon_char}`;
+          if(gain_max) gain_string += `+${gain_max}${resource_icon_char}MAX`;
         }).join(',');
 
-        if(is_evil_eye) gain_string = "  " + icon_eye_placeholder_char + 'evil eye';
+        if(is_evil_eye) gain_string = "" + icon_eye_placeholder_char + 'evil eye';
 
         // Offset if entity cost
         detail_x += 60;
-        sprite_text.fillText(this.ui_ctx, "GAIN: ", detail_x, detail_y, detail_font_size, 0.3, undefined, rgb_offwhite);
-        sprite_text.fillText(this.ui_ctx, gain_string, detail_x, detail_y + 7, detail_font_size, 0.3, undefined, rgb_gold);
+        sprite_text.fillText(this.ui_ctx, "GAIN: ", detail_x, detail_y, detail_font_size, detail_font_spacing, undefined, rgb_offwhite);
+        sprite_text.fillText(this.ui_ctx, gain_string, detail_x, detail_y + 7, detail_font_size, detail_font_spacing, undefined, rgb_gold);
       }
     }
   }
@@ -196,24 +208,29 @@ export class UIText {
     const tooltip_y = footer_y - 14;
 
     let text = '';
-    if(quantity_change) text += '+' + quantity_change + ' ';
+    if(quantity_change) text += '+' + quantity_change;
     if(ps_change) text += " +" + ps_change + '/s';
     if(limit_change) text += " +" + limit_change + 'MAX';
 
     const rect_x = tooltip_x * pixel_size;
     const rect_y = (tooltip_y - 12) * pixel_size;
-    const rect_w = 60 * pixel_size;
-    const rect_h = 20 * pixel_size;
+    const rect_w = 150 * pixel_size;
+    const rect_h = 25 * pixel_size;
+
+    // this.ui_ctx.fillStyle = 'blue';
+    // this.ui_ctx.fillRect(rect_x, rect_y, rect_w, rect_h);
+
+    // TODO: Clear the whole width
 
     new Animator(1000, 1, (percent_complete) => {
       const offset = -10 * percent_complete;
-      this.ui_ctx.clearRect(rect_x, rect_y, rect_w, rect_h);
-      sprite_text.fillText(this.ui_ctx, text, (tooltip_x + 5), tooltip_y + offset, 4.5, undefined, undefined, rgb_gold);
+      this.tooltip_ctx.clearRect(rect_x, rect_y, rect_w, rect_h);
+      sprite_text.fillText(this.tooltip_ctx, text, (tooltip_x + 5), tooltip_y + offset, 4.3, undefined, undefined, rgb_gold);
       // Fade out
-      this.ui_ctx.globalCompositeOperation = 'destination-out'; 
-      this.ui_ctx.fillStyle = `rgba(0, 0, 0, ${percent_complete})`; 
-      this.ui_ctx.fillRect(rect_x, rect_y, rect_w, rect_h);
-      this.ui_ctx.globalCompositeOperation = 'source-over'; 
+      this.tooltip_ctx.globalCompositeOperation = 'destination-out'; 
+      this.tooltip_ctx.fillStyle = `rgba(0, 0, 0, ${percent_complete})`; 
+      this.tooltip_ctx.fillRect(rect_x, rect_y, rect_w, rect_h);
+      this.tooltip_ctx.globalCompositeOperation = 'source-over'; 
     });
   }
 

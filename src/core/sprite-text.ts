@@ -102,18 +102,16 @@ class SpriteText {
 
     let total_offset = 0; 
     text.split('').map((_,i) => {
-      const code = text.charCodeAt(i);
+      let code = text.charCodeAt(i);
       const char_is_space = code == 32;
       const is_period = code == 46; 
       const is_question = code == 63;
       const is_colon = code == 58;
-
       const char_is_icon = icon_codes.includes(code);
-      const dont_render_char = char_is_space || char_is_icon;            
-  
+
       // Tighten up !, ., : marks
-      if(code == 33 || is_period || is_colon) {
-        cur_offset -= (space * 0.8);
+      if(code == 33 || is_period || is_colon || char_is_icon) {
+        cur_offset -= (space * 0.85);
       }
 
       // 0 index characters to align with spritesheet
@@ -159,9 +157,9 @@ class SpriteText {
 
         if(icon_canvas_to_render) {
           drawFn = () => {
-            ctx.drawImage(icon_canvas_to_render, dest_x - space * 3, dest_y - space, 5.5 * pixel_size, 5.5 * pixel_size);
+            ctx.drawImage(icon_canvas_to_render, dest_x, dest_y - space, 5.5 * pixel_size, 5.5 * pixel_size);
           };
-          cur_offset += (space * 1);
+          cur_offset += space * 3;
         }
       }
       

@@ -2,7 +2,7 @@ import { footer_space, footer_x, footer_y, globals, grid_col, grid_row, minion_l
 import { GameEntity } from "@/core/game-entity";
 import { spritesheet_data } from "@/data/spritesheet-data";
 import { GameEntityState, GameEntityParams } from "@/core/game-entity";
-import { playViolinSound, soundError } from "@/core/game-audio";
+import { playCreepyAmbience, playMysteriousWhisper, playViolinSound } from "@/core/game-audio";
 import { arrFull, arrRan, getEntityByName, percentOfRange, ranInt } from "@/core/utils";
 import { Animator } from "@/core/animator";
 import { drawEndFrame } from "@/core/endframe";
@@ -27,7 +27,7 @@ const organs: GameEntityParams[] = [
     state: GameEntityState.AVAILABLE,
     cost: {
       [Resources.HORMONES]: {
-        quantity: 100,
+        quantity: 150,
       },
       [Resources.MATURITY]: {
         quantity: 50,
@@ -40,6 +40,7 @@ const organs: GameEntityParams[] = [
    
     },
     onPurchase() {
+      playCreepyAmbience();
       drawEndFrame();
     },
     purchase_limit: 1,
@@ -64,15 +65,17 @@ const organs: GameEntityParams[] = [
     },
     gain: {
       [Resources.HORMONES]: {
-        per_second: 0.5
+        per_second: .5,
+        limit: 5
       }
     },
     onPurchase() {
-      (this) as GameEntity;
-
       if(this.cost) {
         const hormones_cost = this.cost[Resources['HORMONES']];
         if(hormones_cost?.quantity) hormones_cost.quantity *= 1.5;
+      }
+
+      if((this as GameEntity).purchase_count == 1) {
         const kidney = getEntityByName('form kidney');
         kidney?.becomeAvailable();
 
@@ -101,15 +104,17 @@ const organs: GameEntityParams[] = [
       [Resources.HORMONES]: {
         limit: 10
       },
-      // [Resources.MATURITY]: {
-      //   quantity: 5,
-      //   per_second: 0.5
-      // }
     },
     onPurchase() {
+      if(this.cost) {
+        const hormones_cost = this.cost[Resources['HORMONES']];
+        if(hormones_cost?.quantity) hormones_cost.quantity += 10;
+      }
+
       if((this as GameEntity).purchase_count == 1) {
         globals.ui_text?.updateMinionText(minion_lines['kidney']);
       }
+
     },
     purchase_limit: 2,
     sprite_data: {
@@ -120,13 +125,13 @@ const organs: GameEntityParams[] = [
     },
   },
   {
-    name: "work brain",
+    name: "exercise brain",
     // description: "The root of all evil",
     cooldown_duration: 800,
     state: GameEntityState.AVAILABLE, 
     gain: {
       [Resources.HORMONES]: {
-        quantity: 10
+        quantity: 8
       }
     },
     onPurchase() {
@@ -144,11 +149,16 @@ const organs: GameEntityParams[] = [
   {
     name: "lungs",
     // description: "Throat organs",
-    cooldown_duration: 1000,
+    cooldown_duration: 4000,
     state: GameEntityState.LOCKED, 
-    gain: {
+    cost: {
       [Resources.HORMONES]: {
-        quantity: 10
+        quantity: 30,
+      }
+    },
+    gain: {
+      [Resources.MATURITY]: {
+        quantity: 1
       }
     },
     sprite_data: {
@@ -159,13 +169,31 @@ const organs: GameEntityParams[] = [
     },
   },
   {
-    name: "bones",
-    // description: "Growth spurt",
-    cooldown_duration: 1000,
-    state: GameEntityState.LOCKED, 
+    name: "fortify bones",
+    cooldown_duration: 10000,
+    state: GameEntityState.LOCKED,
+    cost: {
+      [Resources.MATURITY]: {
+        quantity: 20
+      },
+      [Resources.CONFIDENCE]: {
+        quantity: 2,
+      }
+    }, 
     gain: {
       [Resources.HORMONES]: {
-        quantity: 10
+        limit: 10
+      },
+      [Resources.MATURITY]: {
+        limit: 5
+      }
+    },
+    onPurchase() {
+      if(this.cost) {
+        const maturity_cost = this.cost[Resources['MATURITY']];
+        if(maturity_cost?.quantity) maturity_cost.quantity += 5;
+        const confidence_cost = this.cost[Resources['CONFIDENCE']];
+        if(confidence_cost?.quantity) confidence_cost.quantity += 1;
       }
     },
     sprite_data: {
@@ -176,15 +204,36 @@ const organs: GameEntityParams[] = [
     },
   },
   {
-    name: "claws",
+    name: "grow claws",
     cooldown_duration: 2000,
     state: GameEntityState.LOCKED, 
-    gain: {
+    purchase_limit: 3,
+    cost: {
+      [Resources.HORMONES]: {
+        quantity: 120,
+        per_second: .1
+      },
       [Resources.MATURITY]: {
-        per_second: 1
+        quantity: 20,
       }
     },
-    onClick() {
+    gain: {
+      [Resources.MATURITY]: {
+        per_second: .5
+      }
+    },
+    onPurchase() {
+      if((this as GameEntity).purchase_count == 1) {
+        const violin = getEntityByName('practice violin');
+        violin?.becomeAvailable();
+      }
+
+      if(this.cost) {
+        const hormones_cost = this.cost[Resources['HORMONES']];
+        const maturity_cost = this.cost[Resources['MATURITY']];
+        if(hormones_cost?.per_second) hormones_cost.per_second += .1;
+        if(maturity_cost?.quantity) maturity_cost.quantity += 5; 
+      }
       // game_data.hormones.increase_per_second += 0.1;
     },
     sprite_data: {
@@ -197,7 +246,7 @@ const organs: GameEntityParams[] = [
   },
   {
     name: "sharpen horns",
-    cooldown_duration: 5000,
+    cooldown_duration: 8000,
     state: GameEntityState.LOCKED, 
     cost: {
       [Resources['HORMONES']]: {
@@ -206,12 +255,17 @@ const organs: GameEntityParams[] = [
     },
     gain: {
       [Resources['MATURITY']]: {
-        per_second: 0.2
+        per_second: .2
       }
     },
     onPurchase() {
-      const violin = getEntityByName("play violin");
-      violin?.becomeAvailable();
+      if((this as GameEntity).purchase_count == 1) {
+        const claws = getEntityByName('grow claws');
+        claws?.becomeAvailable();
+
+        const tail = getEntityByName('shape hooves');
+        tail?.becomeAvailable();
+      }
     },
     sprite_data: {
       x: organ_x + 4,
@@ -222,13 +276,32 @@ const organs: GameEntityParams[] = [
     },
   },
   {
-    name: "hooves",
+    name: "shape hooves",
     cooldown_duration: 2000,
     state: GameEntityState.LOCKED, 
-    gain: {
+    cost: {
+      [Resources.HORMONES]: {
+        quantity: 90
+      },
       [Resources.MATURITY]: {
-        per_second: 1
+        quantity: 25
+      },
+      [Resources.CONFIDENCE]: {
+        quantity: 5
+      } 
+    },
+    gain: {
+      [Resources.HORMONES]: {
+        limit: 50,
+      },
+      [Resources.MATURITY]: {
+        limit: 5
       }
+    },
+    purchase_limit: 2,
+    onPurchase() {
+      // TODO: Unlock bone
+      
     },
     sprite_data: {
       x: organ_x + 4,
@@ -256,8 +329,9 @@ const organs: GameEntityParams[] = [
   },
 ];
 
+// Add audio
 organs.map(organ_params => {
-  organ_params.clickSoundFn = soundError;
+  organ_params.clickSoundFn = playMysteriousWhisper;
 });
 
 ////////////////////////////////////////////////
@@ -280,14 +354,6 @@ for (let r = 0; r < violin_num_octaves; r++) {
     note_buttons.push({
       state: GameEntityState.AVAILABLE, 
       is_selected: !(default_notes[c] === r),
-      cost: {
-        [Resources.HORMONES]: {
-          quantity: 50,
-        },
-        [Resources.MATURITY]: {
-          quantity: 20
-        }
-      },
       onClick() {
         playViolinSound(note_hz);
 
@@ -299,6 +365,10 @@ for (let r = 0; r < violin_num_octaves; r++) {
         });
 
         (this as GameEntity).is_selected = false;
+        (this as GameEntity).became_available = true;
+        setTimeout(() => {
+          (this as GameEntity).became_available = false;
+        }, 111);
       },
       sprite_data: {
         id: 'note',
@@ -318,14 +388,14 @@ for (let r = 0; r < violin_num_octaves; r++) {
 
 const music = [ 
   {
-    name: "play violin",
+    name: "practice violin",
     cooldown_duration: note_length * violin_num_notes,
-    state: GameEntityState.AVAILABLE, 
+    state: GameEntityState.LOCKED, 
     cost: {
-      // [Resources.MATURITY]: {
-      //   per_second: 0.1, 
-      //   quantity: 20,
-      // }
+      [Resources.MATURITY]: {
+        per_second: .2, 
+        quantity: 25,
+      }
     },
     gain: {
       [Resources.CONFIDENCE]: {
@@ -354,7 +424,6 @@ const music = [
         const note_to_play = notes_to_play[violin_num_notes - repeats_left];
         if(note_to_play) {
           note_to_play.onClick();
-          // playViolinSound(note_to_play.data.hz);
         }
       });
     },
@@ -380,7 +449,7 @@ const books: GameEntityParams[] = [
     purchase_limit: 1,
     cost: {
       [Resources.HORMONES]: {
-        quantity: 200
+        quantity: 150
       },
       [Resources.MATURITY]: {
         quantity: 10
@@ -398,6 +467,13 @@ const books: GameEntityParams[] = [
       },
     },
     onPurchase() {
+      // Unlock next book
+      const black_arts = getEntityByName('the black arts');
+      black_arts?.becomeAvailable();
+
+      const bones = getEntityByName('fortify bones');
+      bones?.becomeAvailable();
+
       globals.ui_text?.updateMinionText(minion_lines['studies']);
     },
     sprite_data: {
@@ -411,11 +487,21 @@ const books: GameEntityParams[] = [
     name: "the black arts",
     state: GameEntityState.LOCKED, 
     purchase_limit: 1,
-
-    gain: {
-      [Resources.KNOWLEDGE]: {
-        quantity: 1
+    cost: {
+      [Resources.HORMONES]: {
+        quantity: 200
+      },
+      [Resources.MATURITY]: {
+        quantity: 20
+      },
+      [Resources.CONFIDENCE]: {
+        quantity: 10
       }
+    },
+    gain: {
+      [Resources.CONFIDENCE]: {
+        per_second: 0.5
+      },
     },
     sprite_data: {
       x: book_x + book_space * 1,

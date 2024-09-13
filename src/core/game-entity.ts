@@ -3,7 +3,6 @@ import Sprite from "./sprite";
 import {  dupeCanvas, ranRGB, replaceColor } from "./utils";
 import { addToHitmask } from "./hitmask";
 import { SpriteData } from "@/core/sprite";
-import { playSoundFn } from "./game-audio";
 
 export const enum GameEntityState {
   "LOCKED",
@@ -43,7 +42,7 @@ export interface GameEntityParams {
   gain?: EntityGain;
   sprite_data: SpriteData;
   purchase_limit?: number;
-  clickSoundFn?: (v: number) => number;
+  clickSoundFn?: () => void;
   onClick?: () => void;
   onPurchase?: () => void;
   hidden?: boolean;
@@ -77,7 +76,7 @@ export class GameEntity extends Sprite {
   active_interactive_canvases: InteractiveCanvases;
   _onClick?: () => void;
   onPurchase?: () => void; 
-  clickSoundFn?: (v: number) => number;
+  clickSoundFn?: () => void;
   elapsed_cooldown_percent: number = 0;
   hover_start: number = 0;
   last_clicked?: number;
@@ -140,7 +139,7 @@ export class GameEntity extends Sprite {
 
     setTimeout(() => {
       this.became_available = false;
-    }, 150);
+    }, 250);
   }
 
   /**
@@ -327,9 +326,6 @@ export class GameEntity extends Sprite {
     // Click callback 
     if(this._onClick) this._onClick();
 
-    // Play sound
-    if(this.clickSoundFn) playSoundFn(this.clickSoundFn);
-
     // Stop click
     setTimeout(() => {
       this.is_clicking = false; 
@@ -342,6 +338,9 @@ export class GameEntity extends Sprite {
     // 
     if(can_purchase) {
       this.purchase_count += 1;
+
+      // Play sound
+      if(this.clickSoundFn) this.clickSoundFn();
 
       // Add cooldown
       if(this.cooldown_duration) {
@@ -404,17 +403,10 @@ export class GameEntity extends Sprite {
     }
     else if(this.became_available) {
       // Flash white
+      console.log(this.name, 'avail');
       canvas_to_render = this.active_interactive_canvases.click_canvas;
     }
-    else if(this.is_too_expensive) {
-      if(this.is_hovering) {
-        canvas_to_render = this.active_interactive_canvases.too_expensive_hover_canvas;
-      }
-      else {
-        canvas_to_render = this.active_interactive_canvases.cooldown_canvas;
-      }
-    }
-    else if(this.is_clicking) {
+    else if(this.is_clicking && this.state === GameEntityState.COOLDOWN) {
       y += click_offset;
       canvas_to_render = this.active_interactive_canvases.click_canvas;
     }
@@ -424,6 +416,14 @@ export class GameEntity extends Sprite {
       const cooldown_anim_percent = Math.min((Date.now() - this.last_clicked  - click_duration) / (this.cooldown_duration - click_duration), 1);    
       ch *= cooldown_anim_percent;
       h *= cooldown_anim_percent;
+    }
+    else if(this.is_too_expensive && !at_purchase_limit) {
+      if(this.is_hovering) {
+        canvas_to_render = this.active_interactive_canvases.too_expensive_hover_canvas;
+      }
+      else {
+        canvas_to_render = this.active_interactive_canvases.cooldown_canvas;
+      }
     }
     else if(at_purchase_limit) {      
       canvas_to_render = this.active_interactive_canvases.at_limit_canvas;

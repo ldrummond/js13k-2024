@@ -244,7 +244,7 @@ export const maturity: ResourceDetails = {
   icon_rect: spritesheet_data['iconHorn'],
   placeholder_char: '|',
   quantity: 0,
-  limit: 20,
+  limit: 25,
   increase_per_second: 0,
   locked_state: true,
   should_unlock: () => false
