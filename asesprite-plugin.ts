@@ -7,7 +7,6 @@ import { execSync } from 'child_process';
 import { readFileSync, writeFileSync  } from 'fs';
 
 export async function generateSpritesheet() {
-
   const source_dir = path.resolve('./', "src/assets/sprites/");
   const source_glob = source_dir + '/**';
   const target_name = "spritesheet";

@@ -88,7 +88,7 @@ const organs: GameEntityParams[] = [
         horns?.becomeAvailable();
       }
     },
-    purchase_limit: 5,
+    purchase_limit: 6,
     sprite_data: {
       x: organ_x + 30,
       y: organ_y + 50,
@@ -130,7 +130,7 @@ const organs: GameEntityParams[] = [
     },
   },
   {
-    name: "exercise brain",
+    name: "develop brain",
     // description: "The root of all evil",
     cooldown_duration: 800,
     state: GameEntityState.AVAILABLE, 
@@ -533,7 +533,7 @@ const books: GameEntityParams[] = [
         per_second: 0.2,
       },
       [Resources.KNOWLEDGE]: {
-        quantity: 2
+        quantity: 1
       },
     },
     onPurchase() {
@@ -557,7 +557,7 @@ const books: GameEntityParams[] = [
     state: GameEntityState.LOCKED, 
     cost: {
       [Resources.HORMONES]: {
-        quantity: 200
+        quantity: 250
       },
       [Resources.MATURITY]: {
         quantity: 30

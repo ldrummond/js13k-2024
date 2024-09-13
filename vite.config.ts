@@ -27,9 +27,6 @@ export default defineConfig(async ({ command, mode }) => {
   
   await generateSpritesheet();
 
-  console.log("Starting build config");
-  
-
   if (command === 'build') {
     // @ts-ignore
     config.esbuild = false;

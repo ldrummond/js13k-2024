@@ -16,34 +16,50 @@ import { playBackgroundMusic } from './core/game-audio';
 spritesheet_img.onload = spritesheetLoaded;
 const skip_loading = false; 
 
-console.log("Load Spritesheet", spritesheet_img);
+// console.log("Load Spritesheet", spritesheet_img);
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve, _) => {
+    setTimeout(resolve, ms); 
+  });
+}
+
 /**
  * Load spritesheet first
  */
-function spritesheetLoaded() {
+async function spritesheetLoaded() {
   // 
-  // Initialize everything
+  // Initialize everything with delau
   // 
   sprite_text.init();
+
   renderBackground();
-  console.log("Rendered Background");
+  // console.log("Rendered Background");
   
   // INIT TEXT BEFORE WRITING
   const ui_text = new UIText();
   globals.ui_text = ui_text;
 
+  await delay(300);
+
   // Init sprites
-  sprite_data_list.map(d => globals.sprites.push(new Sprite(d)));
-  game_entities_data_list.map(d => globals.game_entities.push(new GameEntity(d)));
+  setTimeout(() => {
+    sprite_data_list.map(d => globals.sprites.push(new Sprite(d)));
+    game_entities_data_list.map((d, i) => {
+      setTimeout(() => {
+        globals.game_entities.push(new GameEntity(d));
+      }, i * 60);
+    });    
+  }, 333);
 
   // Init mousemove
-  document.addEventListener("mousemove", (e) => {
+  document.body.addEventListener("mousemove", (e) => {
     // TODO: Throttle mousemove
-    globals.mousepos.x = e.x;
-    globals.mousepos.y = e.y;
+    globals.mousepos.x = e.pageX;
+    globals.mousepos.y = e.pageY;
   });
   
-  console.log("After Initialized");
+  // console.log("After Initialized");
 
   // 
   // Remove loader and get ready to start
@@ -52,7 +68,6 @@ function spritesheetLoaded() {
 
   // Add start button and loading text
   const start_button = document.getElementById("start")!;
-
   const intro_text = 'Infernal Adolescence';
   const intro_size = 12;
   const intro_cadence = 80;
@@ -75,11 +90,11 @@ function spritesheetLoaded() {
   // 
   // Draw character foreground mask
   // 
-  const char_grad = main_ctx.createLinearGradient(char_x + char_border_inset, char_y + char_border_inset, char_w - char_border_inset * 2, char_h - char_border_inset * 2);
-  char_grad.addColorStop(0, ranHSL(hsl_offblack, 0));
-  char_grad.addColorStop(1, ranHSL(hsl_darkred, 0));
   // 
   function drawCharacterGradientMask() {
+    const char_grad = main_ctx.createLinearGradient(char_x + char_border_inset, char_y + char_border_inset, char_w - char_border_inset * 2, char_h - char_border_inset * 2);
+    char_grad.addColorStop(0, ranHSL(hsl_offblack, 0));
+    char_grad.addColorStop(1, ranHSL(hsl_darkred, 0));
     main_ctx.fillStyle = char_grad;
     main_ctx.globalCompositeOperation = 'darken';
     main_ctx.globalAlpha = 0.5;
@@ -92,7 +107,7 @@ function spritesheetLoaded() {
    * Start Game Loop
    */
   function start() {
-    console.log("Start Function");
+    // console.log("Start Function");
 
     // 
     start_button.remove();

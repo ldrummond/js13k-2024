@@ -45,6 +45,7 @@ export class UIText {
 
     // Tooltip canvas
     const [ tooltip_canvas, tooltip_ctx ] = dupeCanvas(main_canvas);
+    tooltip_canvas.id = 'tooltip';
     container.append(tooltip_canvas);
     tooltip_ctx.scale(dpr, dpr);
     tooltip_ctx.imageSmoothingEnabled = false; 
@@ -79,7 +80,7 @@ export class UIText {
    */
   updateMinionText(text: string) {
     // Queue text
-    console.log('minion', text, this.minion_text_typing);
+    // console.log('minion', text, this.minion_text_typing);
     
     if(this.minion_text_typing) {
       this.minion_text_queue.push(text);
@@ -87,11 +88,10 @@ export class UIText {
     }
 
     // Play 
-    console.log('typing start');
+    // console.log('typing start');
     this.minion_text_typing = true;
     setTimeout(() => {
-      console.log('typing end');
-      
+      // console.log('typing end');
       this.minion_text_typing = false; 
     }, text.length * minion_text_type_delay + 800);
 
@@ -234,7 +234,7 @@ export class UIText {
   // 
   onUpdate() {
     if(this.minion_text_queue.length > 0 && !this.minion_text_typing) {
-      console.log('next minion text');
+      // console.log('next minion text');
       const next_text = this.minion_text_queue.shift() + '';
       this.updateMinionText(next_text); 
     }

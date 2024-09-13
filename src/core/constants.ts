@@ -139,7 +139,7 @@ export const minion_lines = {
   "start": "See that little runt? He just turned 13 and is starting puberty.",
   "encourage": "He needs a bit of a nudge. Click the brain to get the hormones pumping.",
   "brain_clicked": "Nice! Look at him squirm. Get more hormones and grow the pituitary.",
-  "jerk": "Hehe what a jerk. They grow up so fast",
+  "jerk": "Good. hurry it up. we only have all of eternity.",
   "claws": "Be careful! Those things are sharp.",
   "kidney": "Hmm not sure what that does.",
   "violin0": "What is this novel form of torture!?",
@@ -189,7 +189,7 @@ export const [hitmask_canvas] = dupeCanvas(main_canvas);
 // Globals
 interface Globals {
   is_clicking: boolean;
-  hitmask_active_color: string;
+  hitmask_active_color: rgb;
   hovering_entity?: GameEntity;
   active_entity?: GameEntity;
   mousepos: Point;
@@ -205,7 +205,7 @@ interface Globals {
 
 export const globals: Globals = {
   is_clicking: false,
-  hitmask_active_color: '',
+  hitmask_active_color: [255,255,255],
   active_entity: undefined,
   mousepos: { x: 0, y: 0} as Point,
   volume: 1,

@@ -54,9 +54,8 @@ class SpriteText {
   }
 
   init() {
-    console.log('Sprite Text Init Src: ', spritesheet_data['textAlt']);
+    // console.log('Sprite Text Init Src: ', spritesheet_data['textAlt']);
     const [canvas, ctx] = canvasFromSpritesheet(spritesheet_data['textAlt']);
-    console.log('Sprite Text Init: ', spritesheet_data['textAlt'], canvas.width, canvas.height);
     this.spritesheet_text_canvas = canvas;
     this.spritesheet_text_ctx = ctx;
 
@@ -212,7 +211,7 @@ class SpriteText {
     const color_key = "" + color[0] + color[1] + color[2];
     if(this.color_canvases[color_key]) return this.color_canvases[color_key];
     if(!this.spritesheet_text_canvas?.width) console.log('Canvas not defined yet');
-    // console.log('GetColorCanvas:', this.spritesheet_text_canvas, this.spritesheet_text_canvas?.width, this.spritesheet_text_canvas?.height);
+    
     const [color_canvas, color_ctx] = dupeCanvas(this.spritesheet_text_canvas!);
     replaceColor(color_canvas!, color_ctx, rgb_white, color);
     this.color_canvases[color_key] = color_canvas;

@@ -1,6 +1,6 @@
 import { click_duration, click_offset, globals, resource_map, Resources, sprite_border_color, sprite_border_hover_color, sprite_purchased_limit_color, sprite_too_expensive_border_color, tooltip_timeout } from "./constants";
 import Sprite from "./sprite";
-import {  dupeCanvas, ranRGB, replaceColor } from "./utils";
+import {  dupeCanvas, ranRGB, replaceColor, rgbMatch } from "./utils";
 import { addToHitmask } from "./hitmask";
 import { SpriteData } from "@/core/sprite";
 
@@ -71,7 +71,7 @@ export class GameEntity extends Sprite {
   gain?: EntityGain;
   sprite_data: SpriteData;
   sprite?: Sprite;
-  hitmask_color: string;
+  hitmask_color: rgb;
   sprite_frames_interactive_canvases: InteractiveCanvases[] = [];
   active_interactive_canvases: InteractiveCanvases;
   _onClick?: () => void;
@@ -125,7 +125,6 @@ export class GameEntity extends Sprite {
     this.hidden = hidden;
     this.is_selected = is_selected;
 
-
     this.preRenderCanvases();
     this.active_interactive_canvases = this.sprite_frames_interactive_canvases[0];
   }
@@ -160,7 +159,7 @@ export class GameEntity extends Sprite {
       // HITMASK LAYER
       // Fill with entity hitmask color
       temp_ctx.globalCompositeOperation = "source-over";
-      temp_ctx.fillStyle = this.hitmask_color;
+      temp_ctx.fillStyle = `rgb(${this.hitmask_color[0]},${this.hitmask_color[1]},${this.hitmask_color[2]})`;
       temp_ctx.fillRect(0, 0, this.w, this.h);
 
       // Mask out the sprite
@@ -258,7 +257,7 @@ export class GameEntity extends Sprite {
    */
   onUpdate() {
     const now = Date.now();
-    const is_hovering = this.hitmask_color === globals.hitmask_active_color;
+    const is_hovering = rgbMatch(this.hitmask_color, globals.hitmask_active_color);
     
     // Start hovering
     if(!this.is_hovering && is_hovering) {
@@ -404,7 +403,6 @@ export class GameEntity extends Sprite {
     }
     else if(this.became_available) {
       // Flash white
-      console.log(this.name, 'avail');
       canvas_to_render = this.active_interactive_canvases.click_canvas;
     }
     else if(this.is_clicking && this.state === GameEntityState.COOLDOWN) {

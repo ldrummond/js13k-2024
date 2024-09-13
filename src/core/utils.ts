@@ -23,8 +23,16 @@ export function ranInt(v: number) {
 
 // 
 // 
-export function ranRGB() {
-  return `rgb(${ranInt(255)},${ranInt(255)},${ranInt(255)})`;
+export function ranRGB(): rgb {
+  return [ranInt(255), ranInt(255), ranInt(255)];
+}
+
+export function rgbMatch(a_rgb: rgb, b_rgb: rgb, threshold = 2): boolean {
+  const r_diff = a_rgb[0] - b_rgb[0];
+  const g_diff = a_rgb[1] - b_rgb[1];
+  const b_diff = a_rgb[2] - b_rgb[2];
+
+  return (Math.abs(r_diff) < threshold && Math.abs(g_diff) < threshold && Math.abs(b_diff) < threshold);
 }
 
 // 
@@ -54,17 +62,23 @@ export function htmlFromString(html_string: string) {
 // 
 export function replaceColor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, color_a: rgb, color_b: rgb) {
   if(canvas.width < 1 || canvas.height < 1) console.log("Failed to replace color");
+  
   let image_data = ctx.getImageData(0, 0, canvas.width, canvas.height);
   let pixel_data = image_data.data;
   for (let i = 0; i < pixel_data.length; i += 4) { // red, green, blue, and alpha
     //short way to compare numerical arrays
     const rgb = pixel_data.slice(i,i+3);
-    if(rgb+'' == color_a+'') {
+    const r_diff = rgb[0] - color_a[0];
+    const g_diff = rgb[1] - color_a[1];
+    const b_diff = rgb[2] - color_a[2];
+
+    if(Math.abs(r_diff) < 3 && Math.abs(g_diff) < 3 && Math.abs(b_diff) < 3) {
       pixel_data[i] = color_b[0];
       pixel_data[i+1] = color_b[1];
       pixel_data[i+2] = color_b[2];
     }
   }
+  
   ctx.putImageData(image_data, 0, 0);
 }
 

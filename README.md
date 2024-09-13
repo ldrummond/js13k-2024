@@ -1,3 +1,16 @@
+
+
+
+
+# Infernal Adolescence
+Game by Lucas Drummond
+
+
+With thanks for the typescript starter:
+Rob Louie: https://github.com/roblouie/js13k-typescript-starter
+
+Below is the starter documentation...
+
 # JS13K TypeScript Starter
 
 **This starter kit is designed to have a powerful but easy-to-use build process allowing you to focus on building your

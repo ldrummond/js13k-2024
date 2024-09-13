@@ -34,6 +34,8 @@ export function renderBackground() {
   // Add page background
   const [page_background_texture_canvas, page_background_texture_ctx] = dupeCanvas(base_canvas);
   page_background_texture_canvas.id = 'page-background';
+  page_background_texture_canvas.classList.add("fill");
+
   document.body.prepend(page_background_texture_canvas);
   fillRectWithRandom(page_background_texture_ctx, 0, 0, window_width, window_height, hsl_offblack, 10);
 
