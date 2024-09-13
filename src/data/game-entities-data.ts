@@ -592,7 +592,7 @@ const books: GameEntityParams[] = [
     state: GameEntityState.LOCKED, 
     cost: {
       [Resources.HORMONES]: {
-        quantity: 300
+        quantity: 290
       },
       [Resources.MATURITY]: {
         quantity: 50
