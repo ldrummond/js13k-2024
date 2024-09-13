@@ -143,7 +143,7 @@ export function playMysteriousWhisper() {
  */
 export function playCreepyAmbience() {
   const chord = chords_obj["E_diminished"]; // Dissonant chord for a creepy effect
-  playChordWithFalloff(chord, 5.0, 0.2, 4.0); // Long fade-in and fade-out
+  playChordWithFalloff(chord, 5.0, 0.03, 4.0); // Long fade-in and fade-out
 }
 
 /**
@@ -159,44 +159,10 @@ export function playDistortedAttack() {
  */
 export function playWetSquelch() {
   const chord = chords_obj["E_diminished"]; // Dissonant chord for a squelchy effect
-  playChordWithFalloff(chord, 0.5, 0.1, 0.2); // Short duration, quick fade-out
+  playChordWithFalloff(chord, 1, 0.01, 1); // Short duration, quick fade-out
 }
 
-/**
- * 
- */
-export function playRustlingPaper() {
-  const chords = [
-      chords_obj["E_diminished"], // Dissonant chord for the effect
-      chords_obj["B_diminished"],
-      chords_obj["G_minor"],
-      chords_obj["C_minor"]
-  ];
 
-  let current_chord_index = 0;
-
-  function playNextChord() {
-      const chord = chords[current_chord_index];
-      
-      // Play the chord with a very short duration and quick fade-out
-      playChordWithFalloff(chord, 0.1, 0.1, 0.1); // Short duration, rapid fade-out
-      
-      // Move to the next chord in the array
-      current_chord_index = (current_chord_index + 1) % chords.length; // Loop back to the start
-      
-      // Schedule the next chord to be played at a random interval
-      const nextInterval = Math.random() * 100 + 50; // Random interval between 50ms and 150ms
-      setTimeout(playNextChord, nextInterval); // Schedule the next chord
-  }
-
-  // Start the rustling paper effect
-  playNextChord();
-
-  // Stop after a certain duration
-  setTimeout(() => {
-      current_chord_index = chords.length; // Exit loop
-  }, 1000); // Play effect for 1 second
-}
 /**
  * 
  *  Function to play a violin-like sound with adjustable pitch

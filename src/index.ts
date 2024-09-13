@@ -30,17 +30,12 @@ function spritesheetLoaded() {
   // INIT TEXT BEFORE WRITING
   const ui_text = new UIText();
   globals.ui_text = ui_text;
-  
-  // Add Loading Text
-  // sprite_text.fillText(loading_ctx, 'start puberty', window_width / 2, window_height / 2 - 30, 2, undefined, rgb_gold);
-  setTimeout(() => {
-    sprite_text.fillText(loading_ctx, 'Infernal Adolescence', 28, 60, 12, 0.12, undefined, rgb_red, 60);
-  }, 100);
 
   // Init sprites
   sprite_data_list.map(d => globals.sprites.push(new Sprite(d)));
   game_entities_data_list.map(d => globals.game_entities.push(new GameEntity(d)));
 
+  // Init mousemove
   document.addEventListener("mousemove", (e) => {
     // TODO: Throttle mousemove
     globals.mousepos.x = e.x;
@@ -53,7 +48,14 @@ function spritesheetLoaded() {
   // Remove loader and get ready to start
   // 
   document.getElementById("loading")?.remove();
+
+  // Add start button and loading text
   const start_button = document.getElementById("start")!;
+
+  setTimeout(() => {
+    sprite_text.fillText(loading_ctx, 'Infernal Adolescence', 28, 60, 12, 0.12, undefined, rgb_red, 60);
+    start_button.style.opacity = '1';
+  }, 100);
   if(skip_loading) {
     start();
   }

@@ -59,6 +59,7 @@ html, body {
     color: var(--c-black);
 }
 
+
 canvas {
     image-rendering: pixelated;
 }

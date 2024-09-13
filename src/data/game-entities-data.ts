@@ -2,7 +2,7 @@ import { footer_space, footer_x, footer_y, globals, grid_col, grid_row, minion_l
 import { GameEntity } from "@/core/game-entity";
 import { spritesheet_data } from "@/data/spritesheet-data";
 import { GameEntityState, GameEntityParams } from "@/core/game-entity";
-import { playCreepyAmbience, playMysteriousWhisper, playViolinSound } from "@/core/game-audio";
+import { playCreepyAmbience, playMysteriousWhisper, playViolinSound, playWetSquelch } from "@/core/game-audio";
 import { arrFull, arrRan, getEntityByName, percentOfRange, ranInt } from "@/core/utils";
 import { Animator } from "@/core/animator";
 import { drawEndFrame } from "@/core/endframe";
@@ -621,7 +621,6 @@ const books: GameEntityParams[] = [
       spritesheet_rects: [spritesheet_data['book5']]
     },
   },
-  // Volume buttons
   {
     name: "MUTE",
     state: GameEntityState.AVAILABLE, 
@@ -642,7 +641,7 @@ const books: GameEntityParams[] = [
 
 // Add audio
 books.map(book_params => {
-  book_params.clickSoundFn = playCreepyAmbience;
+  book_params.clickSoundFn = playWetSquelch;
 });
 
 ////////////////////////////////////////////////
@@ -698,5 +697,7 @@ export const game_entities_data_list: GameEntityParams[] = [
   ...organs,
   ...music,
   ...books,
-  ...icons
+  ...icons,
+  // Volume buttons
+  
 ];
